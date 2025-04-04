@@ -167,15 +167,15 @@ export function title(data: GameData | AnalyseData): string {
 }
 
 export function publicUrl(data: GameData): string {
-  return 'https://lichess.org/' + data.game.id
+  return 'https://live.chess-online.com/' + data.game.id
 }
 
 export function publicAnalyseUrl(data: AnalyseData): string {
-  return 'https://lichess.org/' + data.game.id + '/' + data.orientation
+  return 'https://live.chess-online.com/' + data.game.id + '/' + data.orientation
 }
 
 export function publicGIFUrl(data: GameData | AnalyseData): string {
-  return `https://lichess1.org/game/export/gif/${data.game.id}.gif`
+  return `https://live.chess-online.com/game/export/gif/${data.game.id}.gif`
 }
 
 export function isSupportedVariant(data: GameData): boolean {

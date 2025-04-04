@@ -206,11 +206,6 @@ function renderLinks(user?: Session) {
         <span className="fa fa-cloud-upload" />{i18n('importGame')}
       </li> : null
       }
-      {online ?
-      <li className="side_link" data-route="/search">
-        <span className="fa fa-search" />{i18n('advancedSearch')}
-      </li> : null
-      }
       <li className="sep_link">
         {i18n('playOffline')}
       </li>
@@ -223,9 +218,6 @@ function renderLinks(user?: Session) {
       <li className="hr"></li>
       <li className="side_link" data-route="/settings">
         <span className="fa fa-cog"/>{i18n('settings')}
-      </li>
-      <li className="side_link" data-route="/about">
-        <span className="fa fa-info-circle" />{i18n('about')}
       </li>
     </ul>
   )

@@ -119,7 +119,7 @@ function renderWebsiteLinks(ctrl: IUserCtrl, user: ProfileUser) {
           <a className="external_link"
             oncreate={helper.ontapY(() => openWebsitePage(`/@/${user.id}`))}
           >
-            More on lichess.org
+            More on Chess-Online
           </a>
         </p>
       }
@@ -128,7 +128,7 @@ function renderWebsiteLinks(ctrl: IUserCtrl, user: ProfileUser) {
         <a className="external_link"
           oncreate={helper.ontapY(() => openWebsitePage('/patron'))}
         >
-          Lichess Patron
+          Chess-Online Patron
         </a>
       </p> : null
       }

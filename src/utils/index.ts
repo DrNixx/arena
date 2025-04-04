@@ -113,13 +113,13 @@ export function handleXhrError(error: ErrorResponse): void {
   let message: string
 
   if (!status || status === 0)
-    message = 'lichess.org is unreachable.'
+    message = 'Chess-Online Arena is unreachable.'
   else if (status === 401)
     message = 'You are not authorized to do that.'
   else if (status === 404)
     message = 'Resource not found.'
   else if (status === 503)
-    message = 'lichess.org is temporarily down for maintenance.'
+    message = 'Chess-Online Arena is temporarily down for maintenance.'
   else if (status >= 500)
     message = 'Server error.'
   else

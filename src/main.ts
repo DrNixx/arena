@@ -25,27 +25,27 @@ interface CPUInfoPlugin {
 const CPUInfo = registerPlugin<CPUInfoPlugin>('CPUInfo')
 
 settingsInit()
-.then(() => Promise.all([
-  App.getInfo().catch(() => ({ version: globalConfig.packageVersion })),
-  Device.getInfo(),
-  Device.getId(),
-  Capacitor.getPlatform() === 'ios' ?
-    CPUInfo.nbCores().then((r: { value: number }) => r.value).catch(() => 1) :
-    Promise.resolve((<XNavigator>navigator).hardwareConcurrency || 1),
-  StockfishVariants.getMaxMemory().then((r: { value: number }) => r.value).catch(() => 16),
-  StockfishVariants.getCPUArch().then((r: { value: string }) => r.value).catch(() => 'x86'),
-]))
-.then(([ai, di, did, c, m, cpu]) => appInit(ai, di, did, c, m, cpu))
-.then(() => {
-  routes.init()
-  deepLinks.init()
-  push.init()
-})
-.then(themeInit)
-.then(i18nInit)
-.then(() => processWindowLocation())
-.then(() => {
-  setTimeout(() => {
-    SplashScreen.hide()
-  }, 500)
-})
+  .then(() => Promise.all([
+    App.getInfo().catch(() => ({ version: globalConfig.packageVersion })),
+    Device.getInfo(),
+    Device.getId(),
+    Capacitor.getPlatform() === 'ios' ?
+      CPUInfo.nbCores().then((r: { value: number }) => r.value).catch(() => 1) :
+      Promise.resolve((<XNavigator>navigator).hardwareConcurrency || 1),
+    StockfishVariants.getMaxMemory().then((r: { value: number }) => r.value).catch(() => 16),
+    StockfishVariants.getCPUArch().then((r: { value: string }) => r.value).catch(() => 'x86'),
+  ]))
+  .then(([ai, di, did, c, m, cpu]) => appInit(ai, di, did, c, m, cpu))
+  .then(() => {
+    routes.init()
+    deepLinks.init()
+    push.init()
+  })
+  .then(themeInit)
+  .then(i18nInit)
+  .then(() => processWindowLocation())
+  .then(() => {
+    setTimeout(() => {
+      SplashScreen.hide()
+    }, 500)
+  })

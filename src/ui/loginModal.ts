@@ -82,7 +82,7 @@ export default {
             oncreate: helper.ontap(signupModal.open)
           }, [i18n('signUp')]),
           h('a', {
-            href: 'https://lichess.org/password/reset'
+            href: 'https://live.chess-online.com/password/reset'
           }, [i18n('passwordReset')])
         ]),
       ])

@@ -1,13 +1,12 @@
 {
     "name": "lichobile",
     "version": "8.0.0",
-    "description": "lichess.org mobile application",
+    "description": "Chess-Online Arena mobile application",
     "repository": {
         "type": "git",
-        "url": "https://github.com/lichess-org/lichobile.git"
+        "url": "https://github.com/DrNixx/arena.git"
     },
     "keywords": [
-        "lichess",
         "chess",
         "application",
         "mobile",
@@ -75,6 +74,7 @@
         "@capacitor/toast": "^4.0.0",
         "@types/d3": "4.5.0",
         "@types/lodash-es": "4.17.3",
+        "@types/ysdk": "1.0.8",
         "capacitor-sound-effect": "3.0.0",
         "capacitor-stockfish": "4.0.0",
         "capacitor-stockfish-variants": "2.0.0",
@@ -103,11 +103,13 @@
         "styles-watch": "stylus -w -q -u autoprefixer-stylus src/styl/index.styl -o www/css/compiled/app.css",
         "compile": "tsc --outDir build/",
         "compile-watch": "tsc -w --outDir build/",
-        "clean": "rimraf build/ && rimraf www/*.js && rimraf www/*.js.map",
+        "clean": "rimraf build/ && rimraf www/*.js && rimraf www/*.js.map && rimraf www/*.wasm",
+        "stockfish": "cp stockfish/* www/ || copy stockfish\\*.* www\\",
         "prewatch": "npm run compile",
         "watch": "node scripts/inject-conf && concurrently 'npm:compile-watch' 'rollup -w -c' 'npm:styles-watch'",
         "prebuild": "npm run clean && npm run compile",
-        "build": "node scripts/inject-conf && concurrently 'npm:compile-date-locales' 'npm:styles' 'rollup -c' && npx cap copy",
+        "postbuild": "npm run stockfish",
+        "build": "node scripts/inject-conf && concurrently 'npm:compile-date-locales' 'npm:styles' && rollup -c && npx cap copy",
         "fetch-nnue": "cd node_modules/capacitor-stockfish/stockfish/src && make net && cp *.nnue ../../../../ios/App/Pods",
         "patch-nonfree": "node ./scripts/patch-nonfree"
     }

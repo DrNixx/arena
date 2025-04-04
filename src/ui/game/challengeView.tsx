@@ -24,7 +24,7 @@ export default function challengeView(ctrl: ChallengeCtrl) {
 
   const challenge = ctrl.challenge
 
-  const header = headerWidget('lichess.org')
+  const header = headerWidget('Chess-Online Arena')
 
   if (challenge) {
     board = viewOnlyBoardContent(

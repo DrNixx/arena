@@ -117,7 +117,7 @@ function myTurnGames(): readonly NowPlayingGame[] {
 }
 
 function showSavedPrefToast(data: string): string {
-  Toast.show({ text: '✓ lichess.org: ' + i18n('yourPreferencesHaveBeenSaved'), position: 'center', duration: 'short' })
+  Toast.show({ text: '✓ chess-online.com: ' + i18n('yourPreferencesHaveBeenSaved'), position: 'center', duration: 'short' })
   return data
 }
 

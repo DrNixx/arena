@@ -67,7 +67,7 @@ export default {
   }
 }
 
-const baseUrl = 'https://lichess.org/'
+const baseUrl = 'https://live.chess-online.com/'
 
 function renderStudyMenu(ctrl: AnalyseCtrl) {
 
