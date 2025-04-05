@@ -10,7 +10,6 @@ import { handleXhrError } from '../../utils'
 import { positionsCache } from '../../utils/gamePosition'
 import { emptyFen } from '../../utils/fen'
 import { game as gameXhr } from '../../xhr'
-import * as sleepUtils from '../../utils/sleep'
 import { isOnlineGameData, OnlineGameData } from '../../lichess/interfaces/game'
 import { ChallengeData } from '../../lichess/interfaces/challenge'
 import * as gameApi from '../../lichess/game'
@@ -39,8 +38,6 @@ interface State {
 
 export default {
   oninit(vnode) {
-    sleepUtils.keepAwake()
-
     const now = performance.now()
     gameXhr(vnode.attrs.id, vnode.attrs.color)
     .then(data => {
@@ -66,7 +63,6 @@ export default {
   },
 
   onremove() {
-    sleepUtils.allowSleepAgain()
     socket.destroy()
     if (this.round) {
       this.round.unload()

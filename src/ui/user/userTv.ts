@@ -1,7 +1,6 @@
 import h from 'mithril/hyperscript'
 import socket from '../../socket'
 import * as helper from '../helper'
-import * as sleepUtils from '../../utils/sleep'
 import { handleXhrError } from '../../utils'
 import OnlineRound from '../shared/round/OnlineRound'
 import roundView, { LoadingBoard } from '../shared/round/view/roundView'
@@ -17,8 +16,6 @@ interface State {
 
 const UserTv: Mithril.Component<Attrs, State> = {
   oninit(vnode) {
-    sleepUtils.keepAwake()
-
     const userId = vnode.attrs.id
 
     tv(userId)
@@ -32,7 +29,6 @@ const UserTv: Mithril.Component<Attrs, State> = {
   oncreate: helper.viewFadeIn,
 
   onremove() {
-    sleepUtils.allowSleepAgain()
     socket.destroy()
     if (this.round) {
       this.round.unload()

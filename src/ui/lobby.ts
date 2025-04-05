@@ -1,7 +1,6 @@
 import h from 'mithril/hyperscript'
 import * as utils from '../utils'
 import redraw from '../utils/redraw'
-import * as sleepUtils from '../utils/sleep'
 import storage from '../storage'
 import session from '../session'
 import settings from '../settings'
@@ -163,7 +162,6 @@ function doStartSeeking(conf: PoolMember | HumanSeekSetup, gameId?: string) {
   router.backbutton.stack.push(userCancelSeeking)
 
   isOpenAndSeeking = true
-  sleepUtils.keepAwake()
 
   if (isPoolMember(conf)) enterPool(conf)
   else session.refresh().then(() => sendHook(conf, gameId))
@@ -178,7 +176,6 @@ function userCancelSeeking(fromBB?: string) {
   stopAndClose(fromBB)
   leavePoolOrCancelHook()
   router.reload() // reload the page to restore socket
-  sleepUtils.allowSleepAgain()
 }
 
 function sendHook(setup: HumanSeekSetup, gameId?: string) {

@@ -1,6 +1,5 @@
-import { Capacitor } from '@capacitor/core'
 import { AiRoundInterface } from '../shared/round'
-import { StockfishPlugin, getNbCores, getMaxMemory } from '../../stockfish'
+import { StockfishPlugin, IStockfishEvent, getNbCores } from '../../stockfish'
 
 export default class Engine {
   private level = 1
@@ -10,7 +9,7 @@ export default class Engine {
 
   constructor(readonly ctrl: AiRoundInterface, readonly variant: VariantKey) {
     this.listener = (e: Event) => {
-      const line = (e as any).output
+      const line = (e as IStockfishEvent).output
       console.debug('[stockfish >>] ' + line)
       const bmMatch = line.match(/^bestmove (\w{4,5})|^bestmove ([PNBRQ]@\w{2})/)
       if (bmMatch) {
@@ -29,10 +28,6 @@ export default class Engine {
         window.addEventListener('stockfish', this.listener, { passive: true })
         await this.stockfish.setVariant()
         await this.stockfish.setOption('Threads', getNbCores())
-        const mem = await getMaxMemory()
-        if (Capacitor.getPlatform() !== 'web') {
-          await this.stockfish.setOption('Hash', mem)
-        }
         await this.newGame()
       }
     } catch (e) {
@@ -55,11 +50,8 @@ export default class Engine {
     await this.stockfish.send(`go movetime ${moveTime(this.level)} depth ${depth(this.level)}`)
   }
 
-  public async setLevel(l: number): Promise<void> {
+  public setLevel(l: number): void {
     this.level = l
-    return Capacitor.platform === 'ios' || Capacitor.platform === 'android' ?
-      this.stockfish.setOption('UCI_Elo', elo(this.level)) :
-      this.stockfish.setOption('Skill Level', String(skill(this.level)))
   }
 
   public async exit(): Promise<void> {
@@ -69,7 +61,6 @@ export default class Engine {
 }
 
 const maxMoveTime = 5000
-const maxSkill = 20
 const levelToDepth: Record<number, number> = {
   1: 5,
   2: 5,
@@ -80,27 +71,9 @@ const levelToDepth: Record<number, number> = {
   7: 13,
   8: 22
 }
-const eloTable: Record<number, number> = {
-  1: 1350,
-  2: 1500,
-  3: 1600,
-  4: 1700,
-  5: 2000,
-  6: 2300,
-  7: 2700,
-  8: 2850,
-}
-
-function elo(level: number) {
-  return String(eloTable[level])
-}
 
 function moveTime(level: number) {
   return level * maxMoveTime / 8
-}
-
-function skill(level: number) {
-  return Math.round((level - 1) * (maxSkill / 7))
 }
 
 function depth(level: number) {

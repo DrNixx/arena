@@ -8,7 +8,7 @@ import layout from '../layout'
 import i18n from '../../i18n'
 import settings from '../../settings'
 import * as helper from '../helper'
-import { loadImage, handleError, setStatusBarStyle, isTransparent } from '../../theme'
+import { loadImage, handleError, isTransparent } from '../../theme'
 
 interface Progress {
   loaded: number
@@ -105,7 +105,6 @@ function renderBody(ctrl: State) {
                   resolve(val)
                 }
               })
-              .then((t: string) => setStatusBarStyle(t))
             },
             ctrl.loading
           ),

@@ -15,7 +15,7 @@ function fenFromParams(params: any): string {
 
 export default {
   init() {
-    App.addListener('appUrlOpen', ({ url }) => {
+    void App.addListener('appUrlOpen', ({ url }) => {
       setTimeout(() => {
         const urlObject = new URL(url)
         const path = urlObject.pathname

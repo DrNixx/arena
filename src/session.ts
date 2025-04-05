@@ -7,7 +7,6 @@ import { SESSION_ID_KEY, fetchJSON, fetchText } from './http'
 import { hasNetwork, handleXhrError, serializeQueryParameters } from './utils'
 import { getAtPath, setAtPath, pick } from './utils/object'
 import i18n from './i18n'
-import push from './push'
 import settings, { Prop } from './settings'
 import { TempBan, LobbyData, NowPlayingGame } from './lichess/interfaces'
 import { PlayTime, Perfs } from './lichess/interfaces/user'
@@ -241,17 +240,14 @@ function login(username: string, password: string, token: string | null): Promis
 }
 
 function logout(): Promise<void> {
-  return push.unregister()
-  .then(() =>
-    fetchJSON('/logout', { method: 'POST' }, true)
+  return fetchJSON('/logout', { method: 'POST' }, true)
     .then(() => {
       session = undefined
       onLogout()
       friendsApi.clear()
       redraw()
     })
-  )
-  .catch(handleXhrError)
+    .catch(handleXhrError)
 }
 
 function confirmEmail(token: string): Promise<Session> {

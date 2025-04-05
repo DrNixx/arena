@@ -1,7 +1,6 @@
 import h from 'mithril/hyperscript'
 import redraw from '../../utils/redraw'
 import socket from '../../socket'
-import * as sleepUtils from '../../utils/sleep'
 import router from '../../router'
 import * as utils from '../../utils'
 import * as helper from '../helper'
@@ -37,8 +36,6 @@ export default {
     const now = performance.now()
     const ply = utils.safeStringToNum(vnode.attrs.ply)
     const tabId = vnode.attrs.tabId
-
-    sleepUtils.keepAwake()
 
     loadStudy(studyId, studyChapterId)
     .then(data => {
@@ -77,7 +74,6 @@ export default {
   },
 
   onremove() {
-    sleepUtils.allowSleepAgain()
     socket.destroy()
     if (this.ctrl) {
       this.ctrl.unload()

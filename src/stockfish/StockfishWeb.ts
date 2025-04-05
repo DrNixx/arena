@@ -1,15 +1,5 @@
-import { StockfishPlugin } from 'capacitor-stockfish-variants/dist/esm/definitions'
-import { WebPlugin } from '@capacitor/core'
-
-export class StockfishVariantsWeb extends WebPlugin implements StockfishPlugin {
+export class StockfishWeb {
   private worker?: Worker
-
-  constructor() {
-    super({
-      name: 'StockfishVariants',
-      platforms: ['web']
-    })
-  }
 
   async getMaxMemory(): Promise<{ value: number }> {
     return Promise.resolve({ value: 1024 })

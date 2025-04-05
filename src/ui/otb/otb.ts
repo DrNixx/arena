@@ -2,7 +2,6 @@ import h from 'mithril/hyperscript'
 import socket from '../../socket'
 import * as helper from '../helper'
 import { getCurrentOTBGame } from '../../utils/offlineGames'
-import * as sleepUtils from '../../utils/sleep'
 import { playerFromFen, emptyFen } from '../../utils/fen'
 import settings from '../../settings'
 import i18n from '../../i18n'
@@ -31,12 +30,9 @@ export default {
       this.round = new OtbRound(saved, attrs.fen, attrs.variant)
       window.addEventListener('unload', this.round.saveClock)
     })
-
-    sleepUtils.keepAwake()
   },
   oncreate: helper.viewFadeIn,
   onremove() {
-    sleepUtils.allowSleepAgain()
     if (this.round) {
       this.round.unload()
       window.removeEventListener('unload', this.round.saveClock)

@@ -1,7 +1,6 @@
 import h from 'mithril/hyperscript'
 import socket from '../../socket'
 import { getCurrentAIGame } from '../../utils/offlineGames'
-import * as sleepUtils from '../../utils/sleep'
 import * as helper from '../helper'
 import { emptyFen, playerFromFen } from '../../utils/fen'
 import i18n from '../../i18n'
@@ -35,11 +34,9 @@ export default {
 
       this.round = new AiRound(saved, setupFen, setupVariant, setupColor)
     })
-    sleepUtils.keepAwake()
   },
   oncreate: helper.viewFadeIn,
   onremove() {
-    sleepUtils.allowSleepAgain()
     if (this.round) this.round.engine?.exit()
   },
   view({ attrs }) {

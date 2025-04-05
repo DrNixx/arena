@@ -256,8 +256,9 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
         ai: l
       })
       this.engine!.init()
-      .then(() => this.engine!.setLevel(l))
-      .then(() => this.engine!.search(this.data.game.initialFen, sit.uciMoves.join(' ')))
+      .then(() => {
+        this.engine!.setLevel(l)
+        return this.engine!.search(this.data.game.initialFen, sit.uciMoves.join(' '))})
     }, 500)
   }
 

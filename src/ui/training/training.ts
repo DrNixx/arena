@@ -4,7 +4,6 @@ import socket from '../../socket'
 import session from '../../session'
 import redraw from '../../utils/redraw'
 import { base62ToNumber, handleXhrError, safeStringToNum } from '../../utils'
-import * as sleepUtils from '../../utils/sleep'
 import { emptyFen } from '../../utils/fen'
 import * as helper from '../helper'
 import layout from '../layout'
@@ -81,7 +80,6 @@ export default {
     }
 
     socket.createDefault()
-    sleepUtils.keepAwake()
   },
 
   oncreate: helper.viewFadeIn,
@@ -90,7 +88,6 @@ export default {
     if (this.ctrl) {
       signals.afterLogin.remove(this.ctrl.retry)
     }
-    sleepUtils.allowSleepAgain()
   },
 
   view({ attrs }) {

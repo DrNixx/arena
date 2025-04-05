@@ -1,26 +1,23 @@
-import { Capacitor, registerPlugin } from '@capacitor/core'
-import { Stockfish, StockfishPlugin as IStockfishPlugin } from 'capacitor-stockfish'
-import { VariantKey } from '../lichess/interfaces/variant'
-import settings from '../settings'
 
-export const StockfishVariants = registerPlugin<IStockfishPlugin>('StockfishVariants', {
-  web: () => import('./StockfishVariantsWeb').then(m => new m.StockfishVariantsWeb()),
-})
+import { VariantKey } from '../lichess/interfaces/variant'
+import { StockfishWeb } from './StockfishWeb'
+
+export interface IStockfishEvent extends Event {
+  output: string;
+}
 
 export class StockfishPlugin {
-  private plugin: IStockfishPlugin
+  private plugin: StockfishWeb
 
   constructor(readonly variant: VariantKey) {
-    this.plugin = !this.isVariant() &&
-      canUseNNUE() &&
-      settings.analyse.cevalUseNNUE() ? Stockfish : StockfishVariants
+    this.plugin = new StockfishWeb()
   }
 
   public async start(): Promise<{ engineName: string }> {
     return new Promise((resolve) => {
       let engineName = 'Stockfish'
       const listener = (e: Event) => {
-        const line = (e as any).output
+        const line = (e as IStockfishEvent).output
         console.debug('[stockfish >>] ' + line)
         if (line.startsWith('id name ')) {
           engineName = line.substring('id name '.length)
@@ -31,22 +28,21 @@ export class StockfishPlugin {
         }
       }
       window.addEventListener('stockfish', listener, { passive: true })
-      this.plugin.start()
-      .then(() => this.send('uci'))
+      void this.plugin.start().then(() => this.send('uci'))
     })
   }
 
   public isReady(): Promise<void> {
     return new Promise((resolve) => {
       const listener = (e: Event) => {
-        const line = (e as any).output
+        const line = (e as IStockfishEvent).output
         if (line.startsWith('readyok')) {
           window.removeEventListener('stockfish', listener, false)
           resolve()
         }
       }
       window.addEventListener('stockfish', listener, { passive: true })
-      this.send('isready')
+      void this.send('isready')
     })
   }
 
@@ -61,12 +57,7 @@ export class StockfishPlugin {
 
   public setVariant(): Promise<void> {
     if (this.isVariant()) {
-      if (Capacitor.getPlatform() !== 'web' && this.variant === 'threeCheck')
-        return this.setOption('UCI_Variant', '3check')
-      if (Capacitor.getPlatform() === 'web' && this.variant === 'antichess')
-        return this.setOption('UCI_Variant', 'giveaway')
-      else
-        return this.setOption('UCI_Variant', this.variant.toLowerCase())
+      return this.setOption('UCI_Variant', 'giveaway')
     } else {
       return this.setOption('UCI_Chess960', 'chess960' === this.variant)
     }
@@ -94,12 +85,3 @@ export function getNbCores(): number {
   return cores > 2 ? cores - 1 : 1
 }
 
-export function canUseNNUE(): boolean {
-  if (Capacitor.getPlatform() === 'android') {
-    return window.lichess.cpuArch === 'arm64-v8a'
-  } else if (Capacitor.getPlatform() === 'ios') {
-    return true
-  } else {
-    return false
-  }
-}

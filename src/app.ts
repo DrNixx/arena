@@ -12,7 +12,6 @@ import challengesApi from './lichess/challenges'
 import * as helper from './ui/helper'
 import lobby from './ui/lobby'
 import Badge from './badge'
-import push from './push'
 import router from './router'
 import socket from './socket'
 import sound from './sound'
@@ -24,19 +23,16 @@ export default function appInit(
   appInfo: Pick<AppInfo, 'version'>,
   deviceInfo: DeviceInfo,
   deviceId: DeviceId,
-  cpuCores: number,
-  sfMaxMem: number,
-  cpuArch: string,
 ): void {
-  window.lichess.cpuArch = cpuArch
+  window.lichess.cpuArch = 'x86'
 
   window.deviceInfo = {
     platform: deviceInfo.platform,
     osVersion: deviceInfo.osVersion,
     uuid: deviceId.uuid,
     appVersion: appInfo.version,
-    cpuCores,
-    stockfishMaxMemory: Math.ceil(sfMaxMem / 16.0) * 16,
+    cpuCores: 1,
+    stockfishMaxMemory: 16,
   }
 
   if (Capacitor.getPlatform() === 'ios') {
@@ -109,7 +105,6 @@ function onOnline() {
 
       session.rememberLogin()
       .then(() => {
-        push.register()
         challengesApi.refresh()
         if (Capacitor.getPlatform() === 'ios') {
           Badge.setNumber({ badge: session.myTurnGames().length })

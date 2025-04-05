@@ -1,6 +1,5 @@
 import h from 'mithril/hyperscript'
 import i18n from '../../i18n'
-import * as sleepUtils from '../../utils/sleep'
 import socket from '../../socket'
 import settings from '../../settings'
 import router from '../../router'
@@ -48,8 +47,6 @@ export default {
     const tabId = vnode.attrs.tabId
 
     const shouldGoBack = gameId !== undefined || fenArg !== undefined || vnode.attrs.goBack === '1'
-
-    sleepUtils.keepAwake()
 
     if (source === 'online' && gameId) {
       const now = performance.now()
@@ -126,7 +123,6 @@ export default {
   },
 
   onremove() {
-    sleepUtils.allowSleepAgain()
     socket.destroy()
     if (this.ctrl) {
       this.ctrl.unload()

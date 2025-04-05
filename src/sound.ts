@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core'
-import { SoundEffect } from 'capacitor-sound-effect'
 import throttle from 'lodash-es/throttle'
 import settings from './settings'
 import { isForeground } from './utils/appMode'
@@ -61,30 +59,19 @@ export default {
   },
 }
 
-const iosBuffers: {[id: string]: AudioBuffer } = {}
+const audioMap: { [id: string]: HTMLAudioElement | undefined } = {}
 
-async function loadSound(id: string): Promise<void> {
+function loadSound(id: string): void {
   const path = `sounds/${id}.mp3`
-  if (Capacitor.getPlatform() === 'ios' && ctx != null) {
-    window
-      .fetch(path)
-      .then(rsp => rsp.arrayBuffer())
-      .then(buf => ctx!.decodeAudioData(buf))
-      .then(audio => iosBuffers[id] = audio)
-  } else {
-    SoundEffect.loadSound({ id, path })
-  }
+  const audio = new Audio()
+  audio.setAttribute('src', path)
+  audio.load()
+  audioMap[id] = audio
 }
 
 function play(id: string): void {
   if (settings.general.sound() && isForeground()) {
-    if (Capacitor.getPlatform() === 'ios' && ctx != null) {
-      const mv = ctx.createBufferSource()
-      mv.buffer = iosBuffers[id]
-      mv.connect(ctx.destination)
-      mv.start()
-    } else {
-      SoundEffect.play({ id })
-    }
+    const audio = audioMap[id]
+    if (audio) audio.play()
   }
 }

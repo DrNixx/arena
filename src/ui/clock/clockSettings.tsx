@@ -1,5 +1,4 @@
 import h from 'mithril/hyperscript'
-import { StatusBar } from '@capacitor/status-bar'
 import { Prop } from '~/utils'
 import redraw from '../../utils/redraw'
 import settings from '../../settings'
@@ -78,6 +77,5 @@ export default {
 }
 
 function onChange () {
-  StatusBar.hide()
   redraw()
 }

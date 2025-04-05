@@ -4,7 +4,6 @@ import { dropShadowHeader, backButton } from '../shared/common'
 import formWidgets from '../shared/form'
 import Checkbox from '../shared/form/Checkbox'
 import layout from '../layout'
-import push from '../../push'
 import i18n from '../../i18n'
 import settings from '../../settings'
 import vibrate from '../../vibrate'
@@ -31,23 +30,6 @@ function renderBody() {
         settings.general.vibrateOnGameEvents, vibrate.onSettingChange
       ),
     ),
-    ...(push.isStub ? [] : [
-      h(
-        'li.list_item',
-        formWidgets.renderCheckbox(
-          i18n('notifications'),
-          'notifications',
-          settings.general.notifications.enable,
-          isOn => {
-            if (isOn) {
-              push.register()
-            } else {
-              push.unregister()
-            }
-          }
-        ),
-      ),
-    ]),
   ])
 }
 
@@ -55,7 +37,7 @@ export default {
   oncreate: helper.viewSlideIn,
 
   view() {
-    const headerTitle = i18n('sound') + (push.isStub ? '' : ' | ' + i18n('notifications'))
+    const headerTitle = i18n('sound')
     const header = dropShadowHeader(null, backButton(headerTitle))
     return layout.free(header, renderBody())
   }

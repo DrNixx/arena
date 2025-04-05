@@ -5,7 +5,6 @@ import { ErrorResponse } from '../http'
 import redraw from '../utils/redraw'
 import socket from '../socket'
 import signals from '../signals'
-import push from '../push'
 import challengesApi from '../lichess/challenges'
 import { handleXhrError } from '../utils'
 import * as helper from './helper'
@@ -109,7 +108,6 @@ function onLogin(e: Event) {
     redraw()
     // reconnect socket to refresh friends...
     socket.reconnectCurrent()
-    push.register()
     challengesApi.refresh()
     session.refresh()
   })

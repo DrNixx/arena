@@ -1,7 +1,5 @@
-import { Capacitor } from '@capacitor/core'
 import { Toast } from '@capacitor/toast'
 import { Filesystem, Directory, ReadFileResult } from '@capacitor/filesystem'
-import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar'
 import settings from './settings'
 
 const baseUrl = 'https://veloce.github.io/lichobile-themes'
@@ -22,8 +20,6 @@ export function isTransparent(key: string) {
 export function init() {
   const bgTheme = settings.general.theme.background()
   const boardTheme = settings.general.theme.board()
-
-  setStatusBarStyle(bgTheme)
 
   // load background theme
   if (isTransparent(bgTheme)) {
@@ -175,20 +171,3 @@ export function getSystemTheme(): string {
 
   return systemTheme
 }
-
-export function setStatusBarStyle(key: string): Promise<void> {
-  const bgTheme = key === 'system' ? getSystemTheme() : key
-  return Promise.all([
-    Capacitor.getPlatform() === 'android' ? StatusBar.setBackgroundColor({
-      color: bgTheme === 'light' ? '#edebe9' :
-        bgTheme === 'dark' ? '#161512' : '#000000'
-    }) : Promise.resolve(),
-    StatusBar.setStyle({
-      style: bgTheme === 'light' ? StatusBarStyle.Light : StatusBarStyle.Dark
-    }),
-    // StatusBar.setOverlaysWebView({
-    //   overlay: isTransparent(bgTheme)
-    // }),
-  ]).then(() => { /* noop */ })
-}
-
