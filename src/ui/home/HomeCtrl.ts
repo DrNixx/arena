@@ -51,8 +51,8 @@ export default class HomeCtrl {
   public timelineData?: TimelineData
   public offlinePuzzle?: PuzzleData | undefined
 
-  private networkListener: PluginListenerHandle
-  private appStateListener: PluginListenerHandle
+  private networkListener: Promise<PluginListenerHandle>
+  private appStateListener: Promise<PluginListenerHandle>
 
   constructor(defaultTab?: number) {
     this.corresPool = []
@@ -91,8 +91,8 @@ export default class HomeCtrl {
   }
 
   public unload = () => {
-    this.networkListener.remove()
-    this.appStateListener.remove()
+    this.networkListener.then((v) => v.remove())
+    this.appStateListener.then((v) => v.remove())
   }
 
   public init = () => {

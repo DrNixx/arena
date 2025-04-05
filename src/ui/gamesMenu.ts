@@ -1,5 +1,5 @@
 import h from 'mithril/hyperscript'
-import addSeconds from 'date-fns/esm/addSeconds'
+import { addSeconds } from 'date-fns'
 import * as utils from '../utils'
 import redraw from '../utils/redraw'
 import { batchRequestAnimationFrame } from '../utils/batchRAF'

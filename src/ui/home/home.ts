@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core'
 import socket from '../../socket'
 import signals from '../../signals'
 import { safeStringToNum } from '../../utils'
@@ -40,7 +39,7 @@ export default {
       body(this.ctrl),
       undefined,
       undefined,
-      Capacitor.platform === 'ios' ? this.ctrl.onScroll : undefined,
+      undefined,
     )
   }
 } as Mithril.Component<Attrs, State>

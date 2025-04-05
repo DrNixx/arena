@@ -54,7 +54,7 @@ export default {
             <div>
               <div className="action">
                 <div className="select_input">
-                  {formWidgets.renderSelect('Clock', 'clock', settings.clock.availableClocks, settings.clock.clockType, false, onChange)}
+                  {formWidgets.renderSelect('Clock', 'clock', settings.clock.availableClocks, settings.clock.clockType as Prop<string>, false, onChange)}
                 </div>
                 {clockSettingsView(settings.clock.clockType(), onChange)}
               </div>

@@ -1,8 +1,6 @@
-import { Capacitor } from '@capacitor/core'
 import h from 'mithril/hyperscript'
 import { dropShadowHeader, backButton } from '../shared/common'
 import redraw from '../../utils/redraw'
-import { safeStringToNum } from '../../utils'
 import formWidgets from '../shared/form'
 import layout from '../layout'
 import i18n from '../../i18n'
@@ -61,13 +59,7 @@ const ThemePrefScreen: Mithril.Component<Record<string, never>, State> = {
 export default ThemePrefScreen
 
 function renderBody(ctrl: State) {
-  const list = settings.general.theme.availableBackgroundThemes.filter(t => {
-    if (t.key === 'system' && Capacitor.getPlatform() === 'android') {
-      const osVersion = safeStringToNum(window.deviceInfo.osVersion)
-      return osVersion && osVersion >= 10
-    }
-    return true
-  })
+  const list = settings.general.theme.availableBackgroundThemes
   const current = settings.general.theme.background()
   return [
     h('div#bgThemes.native_scroller.page.settings_list.radio_list', {

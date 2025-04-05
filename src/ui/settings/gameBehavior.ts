@@ -1,4 +1,5 @@
 import h from 'mithril/hyperscript'
+import { Prop } from '~/settings'
 import layout from '../layout'
 import i18n from '../../i18n'
 import { hasNetwork } from '../../utils'
@@ -32,7 +33,7 @@ function renderAppPrefs() {
           { label: i18n('dragPiece'), value: 'drag' },
           { label: i18n('bothClicksAndDrag'), value: 'both' },
         ],
-        settings.game.pieceMove
+        settings.game.pieceMove as Prop<string>
       )
     ),
     h('li.list_item',
@@ -41,7 +42,7 @@ function renderAppPrefs() {
           { label: i18n('castleByMovingTwoSquares'), value: 0 },
           { label: i18n('castleByMovingOntoTheRook'), value: 1 },
         ],
-        settings.game.rookCastle,
+        settings.game.rookCastle as Prop<number>,
       )
     ),
   ]

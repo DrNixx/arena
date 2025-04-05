@@ -1,6 +1,5 @@
 /// <reference path="dts/index.d.ts" />
 import { App } from '@capacitor/app'
-import { Device } from '@capacitor/device'
 import { SplashScreen } from '@capacitor/splash-screen'
 
 import appInit from './app'
@@ -14,12 +13,8 @@ import deepLinks from './deepLinks'
 import globalConfig from './config'
 
 settingsInit()
-  .then(() => Promise.all([
-    App.getInfo().catch(() => ({ version: globalConfig.packageVersion })),
-    Device.getInfo(),
-    Device.getId()
-  ]))
-  .then(([ai, di, did]) => appInit(ai, di, did))
+  .then(() => App.getInfo().catch(() => ({ version: globalConfig.packageVersion })))
+  .then((ai) => appInit(ai))
   .then(() => {
     routes.init()
     deepLinks.init()

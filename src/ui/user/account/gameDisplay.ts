@@ -1,8 +1,9 @@
 import h from 'mithril/hyperscript'
 import layout from '../../layout'
 import i18n from '../../../i18n'
+import { Prop } from '../../../settings'
 import session from '../../../session'
-import { AnimationChoices, Animation } from '../../../lichess/prefs'
+import { AnimationChoices, Animation, PrefValue } from '../../../lichess/prefs'
 import * as helper from '../../helper'
 import { dropShadowHeader, backButton } from '../../shared/common'
 import formWidgets from '../../shared/form'
@@ -26,7 +27,7 @@ const prefsCtrl = {
 export function render(ctrl: typeof prefsCtrl) {
   return [
     h('li.list_item',
-      formWidgets.renderMultipleChoiceButton(i18n('pieceAnimation'), AnimationChoices, ctrl.animation),
+      formWidgets.renderMultipleChoiceButton(i18n('pieceAnimation'), AnimationChoices, ctrl.animation as Prop<PrefValue>),
     ),
     h('li.list_item',
       formWidgets.renderMultipleChoiceButton(i18n('materialDifference'), formWidgets.booleanChoice, ctrl.showCaptured),

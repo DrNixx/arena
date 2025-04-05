@@ -79,7 +79,7 @@ export default {
                     </select>
                   </div> :
                   <div className="select_input">
-                    {formWidgets.renderSelect('variant', 'variant', variants, settings.ai.variant)}
+                    {formWidgets.renderSelect('variant', 'variant', variants, settings.ai.variant as Prop<string>)}
                   </div>
                 }
                 { ctrl.root.vm.setupFen ?
@@ -132,7 +132,7 @@ export default {
 function sideSelector() {
   return (
     <div className="select_input">
-      {formWidgets.renderSelect('side', 'color', colors, settings.ai.color)}
+      {formWidgets.renderSelect('side', 'color', colors, settings.ai.color as Prop<string>)}
     </div>
   )
 }

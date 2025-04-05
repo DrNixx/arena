@@ -1,4 +1,5 @@
 import h from 'mithril/hyperscript'
+import { Prop } from '~/settings'
 import i18n from '../../i18n'
 import settings from '../../settings'
 import * as helper from '../helper'
@@ -42,7 +43,7 @@ function renderBody() {
             { label: i18n('positionLeft'), value: 'left' },
             { label: i18n('positionRight'), value: 'right' },
           ],
-          settings.game.landscapeBoardSide,
+          settings.game.landscapeBoardSide as Prop<string>,
         ),
       ),
       h('li.list_item',

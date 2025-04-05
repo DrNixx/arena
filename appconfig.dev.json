@@ -1,4 +1,4 @@
 {
-  "apiEndPoint": "https://live.chess-online.com",
+  "apiEndPoint": "https://live1.chess-online.com",
   "socketEndPoint": "wss://live.chess-online.com"
 }

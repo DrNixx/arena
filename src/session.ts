@@ -1,5 +1,4 @@
 import { Toast } from '@capacitor/toast'
-import { Device } from '@capacitor/device'
 import throttle from 'lodash-es/throttle'
 import redraw from './utils/redraw'
 import signals from './signals'
@@ -231,7 +230,6 @@ function login(username: string, password: string, token: string | null): Promis
         storage.set(SESSION_ID_KEY, session.sessionId)
       }
       storeSession(data)
-      sendUUID()
       return session
     } else {
       throw { ipban: true }
@@ -279,7 +277,6 @@ function signup(
       if (session.sessionId) {
         storage.set(SESSION_ID_KEY, session.sessionId)
       }
-      sendUUID()
     }
 
     return d
@@ -306,7 +303,7 @@ async function refresh(): Promise<void> {
       challengesApi.refresh().then(redraw)
     }
     redraw()
-  } catch (err) {
+  } catch (err: any) {
     if (session !== undefined && err.status === 401) {
       session = undefined
       onLogout()
@@ -327,15 +324,6 @@ async function backgroundRefresh(): Promise<void> {
       challengesApi.refresh().then(redraw)
     }
   }
-}
-
-function sendUUID(): void {
-  Device.getId()
-  .then(({ uuid }) => {
-    if (uuid !== 'web') {
-      fetchText(`/auth/set-fp/${uuid}/0`, { method: 'POST' })
-    }
-  })
 }
 
 export default {

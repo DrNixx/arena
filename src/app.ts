@@ -1,8 +1,6 @@
 import { Capacitor } from '@capacitor/core'
 import { Network } from '@capacitor/network'
-import { Keyboard } from '@capacitor/keyboard'
 import { App, AppState, AppInfo } from '@capacitor/app'
-import { DeviceInfo, DeviceId } from '@capacitor/device'
 import debounce from 'lodash-es/debounce'
 import { hasNetwork, requestIdleCallback } from './utils'
 import redraw from './utils/redraw'
@@ -20,23 +18,14 @@ import { isForeground, setForeground, setBackground } from './utils/appMode'
 let firstConnection = true
 
 export default function appInit(
-  appInfo: Pick<AppInfo, 'version'>,
-  deviceInfo: DeviceInfo,
-  deviceId: DeviceId,
+  appInfo: Pick<AppInfo, 'version'>
 ): void {
   window.lichess.cpuArch = 'x86'
 
   window.deviceInfo = {
-    platform: deviceInfo.platform,
-    osVersion: deviceInfo.osVersion,
-    uuid: deviceId.uuid,
     appVersion: appInfo.version,
     cpuCores: 1,
     stockfishMaxMemory: 16,
-  }
-
-  if (Capacitor.getPlatform() === 'ios') {
-    Keyboard.setAccessoryBarVisible({ isVisible: true })
   }
 
   requestIdleCallback(() => {

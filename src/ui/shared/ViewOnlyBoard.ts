@@ -47,7 +47,7 @@ const ViewOnlyBoard: Mithril.Component<Attrs, State> = {
       right: 0,
       height: 0,
       width: 0
-    } : dom.getBoundingClientRect()
+    } as DOMRect : dom.getBoundingClientRect()
     if (attrs.delay !== undefined) {
       setTimeout(() => {
         this.ground.attach(dom as HTMLElement, bounds)

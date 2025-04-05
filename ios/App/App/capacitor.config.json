@@ -20,5 +20,21 @@
 	},
 	"ios": {
 		"scheme": "lichess"
-	}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"CAPBrowserPlugin",
+		"ClipboardPlugin",
+		"DevicePlugin",
+		"DialogPlugin",
+		"FilesystemPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"CAPNetworkPlugin",
+		"PreferencesPlugin",
+		"SharePlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin",
+		"ToastPlugin"
+	]
 }

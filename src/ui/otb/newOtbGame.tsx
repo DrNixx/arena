@@ -68,7 +68,7 @@ export default {
                     </select>
                   </div> :
                   <div className="select_input">
-                    {formWidgets.renderSelect('variant', 'variant', variants, settings.otb.variant)}
+                    {formWidgets.renderSelect('variant', 'variant', variants, settings.otb.variant as Prop<string>)}
                   </div>
                 }
                 { ctrl.root.vm.setupFen ?
@@ -91,7 +91,7 @@ export default {
                   </div> : null
                 }
                 <div className="select_input">
-                  {formWidgets.renderSelect(i18n('clock'), 'clock', settings.otb.availableClocks, settings.otb.clockType, false, onChange)}
+                  {formWidgets.renderSelect(i18n('clock'), 'clock', settings.otb.availableClocks, settings.otb.clockType as Prop<string>, false, onChange)}
                 </div>
                 {clockSettingsView(settings.otb.clockType(), onChange)}
               </div>

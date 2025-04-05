@@ -4,8 +4,8 @@ import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
 import strip from '@rollup/plugin-strip'
-import { terser } from 'rollup-plugin-terser'
-import visualizer from 'rollup-plugin-visualizer'
+import terser from '@rollup/plugin-terser'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const release = process.env.APP_MODE === 'release'
 const projectRootDir = path.resolve(__dirname)

@@ -47,7 +47,7 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
   public moveList: boolean
   public promoting: Promoting | null = null
 
-  private appStateListener: PluginListenerHandle
+  private appStateListener: Promise<PluginListenerHandle>
 
   public constructor(
     saved?: StoredOfflineGame | null,
@@ -97,7 +97,7 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
   }
 
   public unload() {
-    this.appStateListener.remove()
+    this.appStateListener.then((v) => v.remove)
     this.saveClock()
   }
 

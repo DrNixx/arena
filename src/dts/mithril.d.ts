@@ -1,7 +1,7 @@
 /* eslint-disable */
 declare namespace Mithril {
 
-	interface Lifecycle<Attrs, State> {
+	interface Lifecycle<Attrs, State extends Lifecycle<Attrs, State>> {
 		/** The oninit hook is called before a vnode is touched by the virtual DOM engine. */
 		oninit?(this: State, vnode: Vnode<Attrs, State>): any;
 		/** The oncreate hook is called after a DOM element is created and attached to the document. */
@@ -14,8 +14,8 @@ declare namespace Mithril {
 		onbeforeupdate?(this: State, vnode: Vnode<Attrs, State>, old: VnodeDOM<Attrs, State>): boolean | void;
 		/** The onupdate hook is called after a DOM element is updated, while attached to the document. */
 		onupdate?(this: State, vnode: VnodeDOM<Attrs, State>): any;
-		/** WORKAROUND: TypeScript 2.4 does not allow extending an interface with all-optional properties. */
-		[_: number]: any;
+		/** Any other virtual element properties, including attributes and event handlers. */
+		[property: string]: any;
 	}
 
 	interface Hyperscript {
@@ -24,9 +24,9 @@ declare namespace Mithril {
 		/** Creates a virtual element (Vnode). */
 		(selector: string, attributes: Attributes, ...children: Children[]): Vnode<any, any>;
 		/** Creates a virtual element (Vnode). */
-		<Attrs, State>(component: ComponentTypes<Attrs, State>, ...args: Children[]): Vnode<Attrs, State>;
+		<Attrs, State extends Lifecycle<Attrs, State>>(component: ComponentTypes<Attrs, State>, ...args: Children[]): Vnode<Attrs, State>;
 		/** Creates a virtual element (Vnode). */
-		<Attrs, State>(component: ComponentTypes<Attrs, State>, attributes: Attrs & Lifecycle<Attrs, State> & { key?: string | number }, ...args: Children[]): Vnode<Attrs, State>;
+		<Attrs, State extends Lifecycle<Attrs, State>>(component: ComponentTypes<Attrs, State>, attributes: Attrs & Lifecycle<Attrs, State> & { key?: string | number }, ...args: Children[]): Vnode<Attrs, State>;
 		/** Creates a fragment virtual element (Vnode). */
 		fragment(attrs: Lifecycle<any, any> & { [key: string]: any }, children: ChildArrayOrPrimitive): Vnode<any, any>;
 		/** Turns an HTML string into a virtual element (Vnode). Do not use trust on unsanitized user input. */

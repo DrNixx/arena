@@ -4,7 +4,7 @@
     "paths": {
       "~/*": ["*"]
     },
-    "target": "es2017",
+    "target": "es2021",
     "suppressImplicitAnyIndexErrors": false,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
@@ -18,6 +18,9 @@
     "types": ["lodash-es", "d3"]
   },
   "include": [
+    "src/utils/lru/*.*",
+    "src/utils/zanimo/*.*",
+    "src/ui/helper/Siema.*",
     "src/**/*.js",
     "src/**/*.ts",
     "src/**/*.tsx"

@@ -1,7 +1,6 @@
 import { App, AppState } from '@capacitor/app'
 import { Toast } from '@capacitor/toast'
-import { Capacitor, PluginListenerHandle } from '@capacitor/core'
-import Badge from '~/badge'
+import { PluginListenerHandle } from '@capacitor/core'
 import Chessground from '../../../chessground/Chessground'
 import * as cg from '../../../chessground/interfaces'
 import redraw from '../../../utils/redraw'
@@ -80,7 +79,7 @@ export default class OnlineRound implements OnlineRoundInterface {
   private blur: boolean
 
   private transientMove: TransientMove
-  private appStateListener: PluginListenerHandle
+  private appStateListener: Promise<PluginListenerHandle>
 
   public constructor(
     readonly goingBack: boolean,
@@ -576,11 +575,6 @@ export default class OnlineRound implements OnlineRoundInterface {
 
     if (this.data.game.speed === 'correspondence') {
       session.refresh()
-      .then(() => {
-        if (Capacitor.platform === 'ios') {
-          Badge.setNumber({ badge: session.myTurnGames().length })
-        }
-      })
     }
   }
 
@@ -684,7 +678,7 @@ export default class OnlineRound implements OnlineRoundInterface {
     this.transientMove.clear()
     if (this.clock) this.clock.unload()
     clearInterval(this.clockIntervId)
-    this.appStateListener.remove()
+    this.appStateListener.then((v) => v.remove())
     signals.gameBackButton.removeAll()
   }
 

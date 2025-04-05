@@ -15,8 +15,8 @@ import { connectingHeader } from '../shared/common'
 import { syncAndLoadNewPuzzle, puzzleLoadFailure } from './offlineService'
 import { PuzzleData } from '../../lichess/interfaces/training'
 import database from './database'
-import { Plugins } from '@capacitor/core'
 import { ErrorResponse } from '~/http'
+import { Toast } from '@capacitor/toast'
 
 interface Attrs {
   id?: string
@@ -68,7 +68,7 @@ export default {
         })
         .catch((e: ErrorResponse) => {
           if (e.status === 404) {
-            Plugins.LiToast.show({ text: 'Puzzle not found.', duration: 'short' })
+            Toast.show({ text: 'Puzzle not found.', duration: 'short' })
             loadNewPuzzle()
           } else {
             handleXhrError(e)

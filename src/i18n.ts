@@ -1,17 +1,14 @@
 import { Device } from '@capacitor/device'
 import { Locale } from 'date-fns'
-import formatDistanceStrict from 'date-fns/esm/formatDistanceStrict'
-import formatRelative from 'date-fns/esm/formatRelative'
-import addSeconds from 'date-fns/esm/addSeconds'
+import { formatDistanceStrict, formatDistanceToNowStrict, formatRelative, addSeconds} from 'date-fns'
 import settings from './settings'
-import formatDistanceToNowStrict from 'date-fns/esm/formatDistanceToNowStrict'
 
 type Quantity = 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'
 
 const defaultLocale = 'en-GB'
 const englishMessages: StringMap = {}
-const dateFormatOpts = { day: '2-digit', month: 'long', year: 'numeric' }
-const dateTimeFormatOpts = { ...dateFormatOpts, hour: '2-digit', minute: '2-digit' }
+const dateFormatOpts: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' }
+const dateTimeFormatOpts: Intl.DateTimeFormatOptions = { ...dateFormatOpts, hour: '2-digit', minute: '2-digit' }
 
 let currentLocale: string = defaultLocale
 let dateLocale: Locale | undefined

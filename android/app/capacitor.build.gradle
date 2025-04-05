@@ -2,14 +2,13 @@
 
 android {
   compileOptions {
-      sourceCompatibility JavaVersion.VERSION_11
-      targetCompatibility JavaVersion.VERSION_11
+      sourceCompatibility JavaVersion.VERSION_21
+      targetCompatibility JavaVersion.VERSION_21
   }
 }
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-    implementation project(':capacitor-community-keep-awake')
     implementation project(':capacitor-app')
     implementation project(':capacitor-browser')
     implementation project(':capacitor-clipboard')
@@ -20,14 +19,10 @@ dependencies {
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-network')
     implementation project(':capacitor-preferences')
-    implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
     implementation project(':capacitor-splash-screen')
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-toast')
-    implementation project(':capacitor-sound-effect')
-    implementation project(':capacitor-stockfish')
-    implementation project(':capacitor-stockfish-variants')
 
 }
 

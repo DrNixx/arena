@@ -120,7 +120,7 @@ export default class StrongSocket {
         if (m.t === 'n') this.pong()
         this.handle(m)
       }
-    } catch (e) {
+    } catch (e: any) {
       this.onError(e)
     }
     this.scheduleConnect(this.options.pingMaxLag)
@@ -175,7 +175,7 @@ export default class StrongSocket {
     try {
       this.ws!.send(pingData)
       this.lastPingTime = performance.now()
-    } catch (e) {
+    } catch (e: any) {
       this.debug(e, true)
     }
     this.scheduleConnect(this.options.pingMaxLag)

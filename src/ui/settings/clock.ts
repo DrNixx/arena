@@ -1,4 +1,5 @@
 import h from 'mithril/hyperscript'
+import { Prop } from '~/settings'
 import i18n from '../../i18n'
 import settings from '../../settings'
 import session from '../../session'
@@ -31,7 +32,7 @@ function renderAppPrefs() {
           { label: i18n('positionLeft'), value: 'left' },
           { label: i18n('positionRight'), value: 'right' },
         ],
-        settings.game.clockPosition
+        settings.game.clockPosition as Prop<string>
       )
     ),
   ]

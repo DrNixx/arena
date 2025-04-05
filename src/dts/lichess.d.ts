@@ -72,18 +72,19 @@ interface Window {
     immersiveMode: () => void
   }
   deviceInfo: {
-    platform: 'ios' | 'android' | 'electron' | 'web'
-    osVersion: string
-    uuid: string
     appVersion: string
     cpuCores: number
     stockfishMaxMemory: number
   }
+
+  /*
   requestIdleCallback?: ((
     callback: ((deadline: RequestIdleCallbackDeadline) => void),
     opts?: RequestIdleCallbackOptions,
   ) => RequestIdleCallbackHandle)
+
   cancelIdleCallback?: ((handle: RequestIdleCallbackHandle) => void)
+  */
 }
 
 interface Piece {

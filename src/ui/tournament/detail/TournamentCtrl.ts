@@ -46,7 +46,7 @@ export default class TournamentCtrl {
 
   private pagesCache: PagesCache = {}
 
-  private appStateListener: PluginListenerHandle
+  private appStateListener: Promise<PluginListenerHandle>
 
   constructor(data: Tournament) {
     this.id = data.id
@@ -176,7 +176,7 @@ export default class TournamentCtrl {
   }
 
   unload = () => {
-    this.appStateListener.remove()
+    this.appStateListener.then((v) => v.remove())
   }
 
   private scrollToMe = () => {
