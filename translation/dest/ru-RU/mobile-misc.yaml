@@ -1,13 +1,13 @@
 ru-RU:
-  apiUnsupported: "Ваше приложение lichess устарело. Пожалуйста, обновите его до последней версии бесплатно."
-  apiDeprecated: "Обновите ваше приложение lichess, это бесплатно! Поддержка текущей версии будет прекращена %s."
+  apiUnsupported: "Ваше приложение устарело. Пожалуйста, обновите его до последней версии бесплатно."
+  apiDeprecated: "Обновите ваше приложение, это бесплатно! Поддержка текущей версии будет прекращена %s."
   comments: "Комментарии"
   gameInformation: "О партии"
   home: "Главная"
   lastScore: "Последний результат: %s"
   playerisInvitingYou: "%s приглашает вас"
   unsupportedVariant: "Вариант %s не поддерживается в этой версии"
-  notesSynchronizationHasFailed: "Не удалось синхронизировать заметки с lichess, повторите попытку позже."
+  notesSynchronizationHasFailed: "Не удалось синхронизировать заметки с сервером, повторите попытку позже."
   vibrateOnGameEvents: "Вибрировать при игровых событиях"
   offline: "Офлайн"
   otbUseSymmetricPieces: "Использовать симметричные фигуры" #Setting for offline over-the-board games
@@ -21,5 +21,5 @@ ru-RU:
   sharePgn: "Поделиться PGN"
   shareGameUrl: 'Поделиться ссылкой на игру'
   playOnline: "Играть онлайн"
-  playOffline: "Играть офлайн"
+  playOffline: "Нет соединения с сервером Arena"
   bgThemeSyncWithSystem: "Синхронизировать с системой" #Settings to synchronise background theme (dark or light) with the operating system (to support daynight automatic switch)

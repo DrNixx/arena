@@ -83,7 +83,7 @@
     "signals": "1.0.0"
   },
   "scripts": {
-    "start": "concurrently 'npm run watch' 'npm run serve'",
+    "start": "concurrently 'npm:watch' 'npm:serve'",
     "serve": "http-server -p 8080 -s -g -c-1 .",
     "version": "node scripts/bump-version.js",
     "lint": "eslint src/",
@@ -100,7 +100,7 @@
     "watch": "node scripts/inject-conf && concurrently 'npm:compile-watch' 'rollup --bundleConfigAsCjs -w -c' 'npm:styles-watch'",
     "prebuild": "npm run clean && npm run compile",
     "postbuild": "npm run stockfish",
-    "build": "node scripts/inject-conf && concurrently 'npm:compile-date-locales' 'npm:styles' && rollup --bundleConfigAsCjs -c && npx cap copy",
+    "build": "node scripts/inject-conf && concurrently 'npm:compile-date-locales' 'npm:styles' && rollup --bundleConfigAsCjs -c",
     "fetch-nnue": "cd node_modules/capacitor-stockfish/stockfish/src && make net && cp *.nnue ../../../../ios/App/Pods",
     "patch-nonfree": "node ./scripts/patch-nonfree"
   }

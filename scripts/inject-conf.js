@@ -32,7 +32,6 @@ const template =
 const html = Mustache.render(template, config)
 
 fs.writeFile(path.join(rootDir, 'www', 'index.html'), html, err => {
-
   if (err) {
     console.error(err)
     process.exit(1)
@@ -40,3 +39,4 @@ fs.writeFile(path.join(rootDir, 'www', 'index.html'), html, err => {
 
   console.log('www/index.html successfully saved!')
 })
+

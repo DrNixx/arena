@@ -13,6 +13,7 @@ npm-debug.log
 /www/*.js
 /www/*.js.map
 /www/index.html
+/www/frame.html
 /www/css/compiled
 /www/i18n/date
 

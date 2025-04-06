@@ -11,6 +11,7 @@ import { processWindowLocation } from './router'
 
 import deepLinks from './deepLinks'
 import globalConfig from './config'
+import type { SDK } from 'ysdk'
 
 settingsInit()
   .then(() => App.getInfo().catch(() => ({ version: globalConfig.packageVersion })))
@@ -27,3 +28,8 @@ settingsInit()
       SplashScreen.hide()
     }, 500)
   })
+  .then(() => YaGames.init())
+  .then((ysdk: SDK) => {
+    console.log('Yandex SDK initialized')
+    ysdk.features.LoadingAPI?.ready()
+  }).catch((e) => console.log(e))

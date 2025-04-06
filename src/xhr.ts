@@ -174,7 +174,7 @@ export function timeline(): Promise<TimelineData> {
 }
 
 export function status(): Promise<void> {
-  const v = window.deviceInfo.appVersion || 'web-dev'
+  const v = 'yandex-game'
   return fetchJSON<ApiStatus>('/api/status', {
     query: {
       v
@@ -183,24 +183,8 @@ export function status(): Promise<void> {
   .then((data: ApiStatus) => {
     // warn if buggy app
     if (data.mustUpgrade) {
-      const key = 'warn_bug_' + v
-      const warnCount = Number(storage.get(key)) || 0
-      if (warnCount === 0) {
-        Dialog.alert({
-          title: 'Alert',
-          message: 'A new version of lichess mobile is available. Please upgrade as soon as possible.',
-        }).then(() => {
-          storage.set(key, 1)
-        })
-      }
-      else if (warnCount === 10) {
-        storage.remove(key)
-      }
-      else {
-        storage.set(key, warnCount + 1)
-      }
-    }
-    else if (data.api.current > globalConfig.apiVersion) {
+      console.log('A new version is available. Please upgrade as soon as possible.')
+    } else if (data.api.current > globalConfig.apiVersion) {
       const versionInfo = data.api.olds.find(o => o.version === globalConfig.apiVersion)
       if (versionInfo) {
         const now = new Date(),

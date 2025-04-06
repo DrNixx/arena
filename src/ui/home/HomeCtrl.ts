@@ -1,5 +1,5 @@
 import { App, AppState } from '@capacitor/app'
-import { Network } from '@capacitor/network'
+import { Network } from '../../network'
 import { PluginListenerHandle } from '@capacitor/core'
 import throttle from 'lodash-es/throttle'
 import debounce from 'lodash-es/debounce'

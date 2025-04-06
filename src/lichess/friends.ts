@@ -1,4 +1,5 @@
 export interface Friend {
+  id: string,
   name: string,
   title?: string
   playing: boolean
@@ -17,16 +18,15 @@ export default {
   reset(friends: string[], playings: string[], patrons: string[] ): void {
     onlineFriends.clear()
     friends.forEach(friend => {
-      const [name, title] = parseFriend(friend)
-      const id = name.toLowerCase()
+      const [id, name, title] = parseFriend(friend)
       const playing = playings.includes(id)
       const patron = patrons.includes(id)
-      onlineFriends.set(friend, { name, title, playing, patron })
+      onlineFriends.set(friend, { id, name, title, playing, patron })
     })
   },
   set(rawName: string, playing: boolean, patron: boolean): void {
-    const [name, title] = parseFriend(rawName)
-    onlineFriends.set(rawName, { name, title, playing, patron })
+    const [id, name, title] = parseFriend(rawName)
+    onlineFriends.set(rawName, { id, name, title, playing, patron })
   },
   playing(rawName: string): void {
     const friend = onlineFriends.get(rawName)
@@ -48,11 +48,10 @@ export default {
   },
 }
 
-function parseFriend(friend: string): [string, string | undefined] {
-  const splitted = friend.split(' ')
-  const name = splitted.length > 1 ? splitted[1] : splitted[0]
-  const title = splitted.length > 1 ? splitted[0] : undefined
-  return [name, title]
+function parseFriend(friend: string): [string, string, string | undefined] {
+  const [id, ...rest] = friend.split('/');
+  const [name, title] = rest.length > 0 ? rest[0].split(' ') : [friend.split(' ').pop(), undefined];
+  return [id, name ?? id, title]
 }
 
 function lexicallyCompareFriends(friend1: Friend, friend2: Friend) {

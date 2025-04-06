@@ -1392,6 +1392,6 @@ export default {
   "sharePgn": "Поделиться PGN",
   "shareGameUrl": "Поделиться ссылкой на игру",
   "playOnline": "Играть онлайн",
-  "playOffline": "Играть офлайн",
+  "playOffline": "Нет соединения с сервером Arena",
   "bgThemeSyncWithSystem": "Синхронизировать с системой"
 }

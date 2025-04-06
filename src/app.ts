@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core'
-import { Network } from '@capacitor/network'
+import { Network } from './network'
 import { App, AppState, AppInfo } from '@capacitor/app'
 import debounce from 'lodash-es/debounce'
 import { hasNetwork, requestIdleCallback } from './utils'
@@ -21,7 +21,6 @@ export default function appInit(
   appInfo: Pick<AppInfo, 'version'>
 ): void {
   window.lichess.cpuArch = 'x86'
-
   window.deviceInfo = {
     appVersion: appInfo.version,
     cpuCores: 1,
@@ -57,8 +56,7 @@ export default function appInit(
   Network.addListener('networkStatusChange', s => {
     if (s.connected) {
       onOnline()
-    }
-    else {
+    } else {
       onOffline()
     }
   })
@@ -70,11 +68,13 @@ export default function appInit(
   // pull session data once (to log in user automatically thanks to cookie)
   // and also listen to online event in case network was disconnected at app
   // startup
-  if (hasNetwork()) {
-    onOnline()
-  } else {
-    session.restoreStoredSession()
-  }
+  Network.getStatus().then(st => {
+    if (st.connected) {
+      onOnline()
+    } else {
+      session.restoreStoredSession()
+    }
+  })
 }
 
 function onResize() {
@@ -85,28 +85,23 @@ function onResize() {
 function onOnline() {
   if (isForeground()) {
     if (firstConnection) {
-
-      firstConnection = false
-
       xhr.status()
-
-      getPools()
-
-      session.rememberLogin()
-      .then(() => {
-        challengesApi.refresh()
-        if (Capacitor.getPlatform() === 'ios') {
-          Badge.setNumber({ badge: session.myTurnGames().length })
-        }
-        redraw()
-      })
-      .catch(() => {
-        console.log('connected as anonymous')
-        if (Capacitor.getPlatform() === 'ios') {
-          Badge.setNumber({ badge: 0 })
-        }
-      })
-
+        .then(() => {
+          firstConnection = false
+          getPools()
+          session.rememberLogin()
+            .then(() => {
+              challengesApi.refresh()
+              redraw()
+            })
+            .catch(() => {
+              console.log('connected as anonymous')
+            })
+        })
+        .catch((e) => {
+          console.error(e)
+          session.restoreStoredSession()
+        })
     } else {
       socket.connect()
       session.refresh()
