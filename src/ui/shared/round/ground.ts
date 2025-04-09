@@ -1,5 +1,5 @@
-import Chessground from '../../../chessground/Chessground'
-import * as cg from '../../../chessground/interfaces'
+import { Api as CgApi } from 'chessground/api';
+import { Config as CgConfig } from 'chessground/config'
 import redraw from '../../../utils/redraw'
 import * as gameApi from '../../../lichess/game'
 import { OnlineGameData } from '../../../lichess/interfaces/game'
@@ -8,7 +8,15 @@ import settings from '../../../settings'
 import { boardOrientation } from '../../../utils'
 import * as chessFormat from '../../../utils/chessFormat'
 
-function makeConfig(data: OnlineGameData, fen: string, flip = false): cg.InitConfig {
+function makeConfig(
+  data: OnlineGameData, 
+  fen: string, 
+  flip = false,
+  userMove: (orig: Key, dest: Key, meta: AfterMoveMeta) => void,
+  userNewPiece: (role: Role, key: Key, meta: AfterMoveMeta) => void,
+  onMove: (orig: Key, dest: Key, capturedPiece?: Piece) => void,
+  onNewPiece: () => void
+): CgConfig {
   const lastStep = data.steps[data.steps.length - 1]
   const lastMove = data.game.lastMove ?
     chessFormat.uciToMove(data.game.lastMove) :
@@ -18,11 +26,11 @@ function makeConfig(data: OnlineGameData, fen: string, flip = false): cg.InitCon
       lastStep.uci !== null
     ) ?
       chessFormat.uciTolastDrop(lastStep.uci) :
-      null
+      undefined
 
   const pieceMoveConf = settings.game.pieceMove()
 
-  return {
+  const config: CgConfig = {
     fen: fen,
     orientation: boardOrientation(data, flip),
     turnColor: data.game.player,
@@ -36,8 +44,8 @@ function makeConfig(data: OnlineGameData, fen: string, flip = false): cg.InitCon
     },
     movable: {
       free: false,
-      color: gameApi.isPlayerPlaying(data) ? data.player.color : null,
-      dests: gameApi.isPlayerPlaying(data) ? gameApi.parsePossibleMoves(data.possibleMoves) : {},
+      color: gameApi.isPlayerPlaying(data) ? data.player.color : undefined,
+      dests: gameApi.isPlayerPlaying(data) ? gameApi.parsePossibleMoves(data.possibleMoves) : undefined,
       showDests: settings.game.pieceDestinations(),
       rookCastle: settings.game.rookCastle() === 1,
     },
@@ -64,24 +72,13 @@ function makeConfig(data: OnlineGameData, fen: string, flip = false): cg.InitCon
     draggable: {
       enabled: pieceMoveConf === 'drag' || pieceMoveConf === 'both',
       distance: 3,
-      magnified: settings.game.magnified(),
-      preventDefault: data.game.variant.key !== 'crazyhouse'
+      autoDistance: settings.game.magnified(),
     },
     selectable: {
       enabled: pieceMoveConf === 'tap' || pieceMoveConf === 'both'
     },
   }
-}
 
-function make(
-  data: OnlineGameData,
-  fen: string,
-  userMove: (orig: Key, dest: Key, meta: AfterMoveMeta) => void,
-  userNewPiece: (role: Role, key: Key, meta: AfterMoveMeta) => void,
-  onMove: (orig: Key, dest: Key, capturedPiece?: Piece) => void,
-  onNewPiece: () => void
-): Chessground {
-  const config = makeConfig(data, fen)
   config.movable!.events = {
     after: userMove,
     afterNewPiece: userNewPiece
@@ -91,14 +88,15 @@ function make(
     dropNewPiece: onNewPiece
   }
   config.viewOnly = data.player.spectator
-  return new Chessground(config)
+
+  return config;
 }
 
-function reload(ground: Chessground, data: OnlineGameData, fen: string, flip: boolean) {
-  ground.reconfigure(makeConfig(data, fen, flip))
+function reload(_ground: CgApi, _data: OnlineGameData, _fen: string, _flip: boolean) {
+  // ground.set(makeConfig(data, fen, flip))
 }
 
 export default {
-  make,
+  makeConfig,
   reload,
 }

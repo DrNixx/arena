@@ -1,8 +1,8 @@
 import { App, AppState } from '@capacitor/app'
 import { Toast } from '@capacitor/toast'
 import { PluginListenerHandle } from '@capacitor/core'
-import Chessground from '../../../chessground/Chessground'
-import * as cg from '../../../chessground/interfaces'
+import { Api as CgApi } from 'chessground/api';
+import * as cg from 'chessground/types'
 import redraw from '../../../utils/redraw'
 import { hasNetwork, boardOrientation, handleXhrError } from '../../../utils'
 import signals from '../../../signals'
@@ -35,6 +35,9 @@ import * as xhr from './roundXhr'
 import crazyValid from './crazy/crazyValid'
 import { OnlineRoundInterface } from './'
 import { Promoting } from '../offlineRound/promotion'
+import { SetConfig } from '~/utils/types';
+import { promote } from '~/chess/promote';
+import { Config } from 'chessground/config';
 
 interface VM {
   ply: number
@@ -59,7 +62,7 @@ interface VM {
 
 export default class OnlineRound implements OnlineRoundInterface {
   public data!: OnlineGameData
-  public chessground: Chessground
+  public chessground!: CgApi
   public clock: ClockCtrl | null
   public correspondenceClock!: CorresClockCtrl
   public chat: Chat | null
@@ -141,15 +144,6 @@ export default class OnlineRound implements OnlineRoundInterface {
 
     this.notes = this.data.game.speed === 'correspondence' ? new NotesCtrl(this.data) : null
 
-    this.chessground = ground.make(
-      this.data,
-      cfg.game.fen,
-      this.userMove,
-      this.onUserNewPiece,
-      this.onMove,
-      this.onNewPiece
-    )
-
     this.clock = this.data.clock ? new ClockCtrl(this.data, {
       onFlag: this.socket.outoftime,
       soundColor: (this.data.player.spectator || !this.data.pref.clockSound) ? null : this.data.player.color,
@@ -176,6 +170,22 @@ export default class OnlineRound implements OnlineRoundInterface {
     }
 
     redraw()
+  }
+
+  setChessground(api: CgApi): void {
+    this.chessground = api;
+  }
+  
+  getGroundConfig(): Config {
+    return ground.makeConfig(
+      this.data,
+      this.data.game.fen,
+      false,
+      this.userMove,
+      this.onUserNewPiece,
+      this.onMove,
+      this.onNewPiece
+    )
   }
 
   public player = () => this.data.player.color
@@ -289,14 +299,14 @@ export default class OnlineRound implements OnlineRoundInterface {
     const isFwd = ply > this.vm.ply
     this.vm.ply = ply
     const s = this.plyStep(ply)
-    const config: cg.SetConfig = {
+    const config: SetConfig = {
       fen: s.fen,
-      lastMove: s.uci ? chessFormat.uciToMove(s.uci) : null,
+      lastMove: s.uci ? chessFormat.uciToMove(s.uci) : undefined,
       check: s.check,
       turnColor: this.vm.ply % 2 === 0 ? 'white' : 'black'
     }
     if (!this.replaying()) {
-      config.movableColor = gameApi.isPlayerPlaying(this.data) ? this.data.player.color : null
+      config.movableColor = gameApi.isPlayerPlaying(this.data) ? this.data.player.color : undefined
       config.dests = gameApi.parsePossibleMoves(this.data.possibleMoves)
     }
     this.chessground.set(config)
@@ -463,7 +473,7 @@ export default class OnlineRound implements OnlineRoundInterface {
       this.vm.ply++
       const newConf = {
         turnColor: d.game.player,
-        dests: playing ? gameApi.parsePossibleMoves(d.possibleMoves) : <DestsMap>{},
+        dests: playing ? gameApi.parsePossibleMoves(d.possibleMoves) : undefined,
         check: !!o.check
       }
 
@@ -471,14 +481,14 @@ export default class OnlineRound implements OnlineRoundInterface {
         const enpassantPieces: cg.PiecesDiff = new Map()
         if (o.enpassant) {
           const p = o.enpassant
-          enpassantPieces.set(p.key, null)
+          enpassantPieces.set(p.key, undefined)
         }
 
         const castlePieces: cg.PiecesDiff = new Map()
         if (o.castle && !this.chessground.state.autoCastle) {
           const c = o.castle
-          castlePieces.set(c.king[0], null)
-          castlePieces.set(c.rook[0], null)
+          castlePieces.set(c.king[0], undefined)
+          castlePieces.set(c.rook[0], undefined)
           castlePieces.set(c.king[1], {
             role: 'king',
             color: c.color
@@ -497,28 +507,27 @@ export default class OnlineRound implements OnlineRoundInterface {
           (pieces.get(o.castle.king[0])?.role === 'king' &&
           pieces.get(o.castle.rook[0])?.role === 'rook')
         ) {
-          this.chessground.apiMove(
-            move[0],
-            move[1],
-            pdiff,
-            newConf
-          )
+          this.chessground.move(move[0], move[1])
+
+          if (pdiff) this.chessground.setPieces(pdiff)
+          if (newConf) this.chessground.set(newConf)
         } else {
           this.chessground.set(newConf)
         }
       } else if (isDrop(o)) {
-        this.chessground.apiNewPiece(
+        this.chessground.newPiece(
           {
             role: o.role,
             color: playedColor
           },
-          chessFormat.uciToDropPos(o.uci),
-          newConf
+          chessFormat.uciToDropPos(o.uci)
         )
-      }
 
+        if (newConf) this.chessground.set(newConf)
+      }
+    
       if (o.promotion) {
-        this.chessground.promote(o.promotion.key, o.promotion.pieceClass)
+        promote(this.chessground, o.promotion.key, o.promotion.pieceClass)
       }
 
       if (o.enpassant) {

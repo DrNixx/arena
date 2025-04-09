@@ -17,6 +17,7 @@ import newGameMenu from './newOtbGame'
 import importGamePopup from './importGamePopup'
 import settings from '../../settings'
 import OtbRound from './OtbRound'
+import { getMaterialDiff } from '~/chess/material'
 
 export function overlay(ctrl: OtbRound) {
   return [
@@ -36,7 +37,7 @@ export function renderContent(ctrl: OtbRound, pieceTheme?: string) {
     'turn_white': ctrl.chessground.state.turnColor === 'white',
     'turn_black': ctrl.chessground.state.turnColor === 'black'
   })
-  const material = ctrl.chessground.getMaterialDiff()
+  const material = getMaterialDiff(ctrl.chessground.state)
   const playerName = i18n(ctrl.data.player.color)
   const opponentName = i18n(ctrl.data.opponent.color)
   const replayTable = renderReplay(ctrl)
@@ -45,7 +46,7 @@ export function renderContent(ctrl: OtbRound, pieceTheme?: string) {
 
   const board = h(Board, {
     variant: ctrl.data.game.variant.key,
-    chessground: ctrl.chessground,
+    ctrl: ctrl,
     wrapperClasses,
     customPieceTheme: pieceTheme
   })

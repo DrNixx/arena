@@ -1,11 +1,62 @@
+import * as cg from 'chessground/types';
 import { askWorker } from './utils/worker'
 import { GameStatus, CheckCount, Pockets } from './lichess/interfaces/game'
 import { VariantKey, Variant } from './lichess/interfaces/variant'
+import { uciChar } from './chess/uciChar';
 
 const worker = new Worker('vendor/scalachess.js')
 
 // warmup
 worker.postMessage({ topic: 'init', payload: { variant: 'standard'}})
+
+export const fixCrazySan = (san: San): San => (san[0] === 'P' ? san.slice(1) : san);
+
+export const destsToUcis = (destMap: cg.Dests): Uci[] =>
+  Array.from(destMap).reduce<Uci[]>((acc, [orig, dests]) => acc.concat(dests.map(dest => orig + dest)), []);
+
+export const readDestsFromString = (lines?: string): cg.Dests | undefined =>
+  lines
+    ? lines.split(' ').reduce<cg.Dests>((dests, line) => {
+        dests.set(
+          uciChar[line[0]],
+          line
+            .slice(1)
+            .split('')
+            .map(c => uciChar[c]),
+        );
+        return dests;
+      }, new Map())
+    : undefined;
+
+export function readDests(lines?: DestsMap | string): cg.Dests | undefined {
+  if (lines === undefined) {
+    return lines;
+  }
+
+  if (typeof lines === 'string') {
+      return readDestsFromString(lines);
+  } else {
+      const dests: cg.Dests = new Map<Key, Key[]>();
+      for (const k in lines) {
+        const line = lines[k];
+        if (line) {
+          dests.set(k as Key, line as Key[]);
+        }
+      }
+
+      return dests;
+  }
+}
+
+export const readDrops = (line?: string | null): Key[] | null =>
+  line ? (line.match(/.{2}/g) as Key[]) || [] : null;
+
+// Extended Position Description
+export const fenToEpd = (fen: cg.FEN): string => fen.split(' ').slice(0, 4).join(' ');
+
+export const plyToTurn = (ply: number): number => Math.floor((ply - 1) / 2) + 1;
+
+export const pieceCount = (fen: cg.FEN): number => fen.split(/\s/)[0].split(/[nbrqkp]/i).length - 1;
 
 export interface GameSituation {
   readonly id: string

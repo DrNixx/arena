@@ -1,4 +1,4 @@
-import { State } from '../../../../chessground/state'
+import { State } from 'chessground/state'
 import { BoardInterface } from '../'
 
 function isDraggable(data: State, color: Color) {
@@ -21,5 +21,5 @@ export default function(ctrl: BoardInterface, e: TouchEvent) {
     role,
     color
   }
-  ctrl.chessground.dragNewPiece(e, piece)
+  ctrl.chessground.dragNewPiece(piece, e)
 }

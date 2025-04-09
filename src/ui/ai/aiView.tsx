@@ -11,10 +11,11 @@ import * as helper from '../helper'
 import actions from './actions'
 import newGameMenu from './newAiGame'
 import AiRound from './AiRound'
+import { getMaterialDiff } from '~/chess/material'
 
 export function renderContent(ctrl: AiRound) {
 
-  const material = ctrl.chessground.getMaterialDiff()
+  const material = getMaterialDiff(ctrl.chessground.state)
   const isPortrait = helper.isPortrait()
   const vd = helper.viewportDim()
 
@@ -30,7 +31,7 @@ export function renderContent(ctrl: AiRound) {
 
   const board = h(Board, {
     variant: ctrl.data.game.variant.key,
-    chessground: ctrl.chessground,
+    ctrl: ctrl,
   })
 
   if (isPortrait) {

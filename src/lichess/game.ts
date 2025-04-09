@@ -1,3 +1,4 @@
+import * as cg from 'chessground/types'
 import i18n, { plural } from '../i18n'
 import { secondsToMinutes } from '../utils'
 import settings from '../settings'
@@ -9,18 +10,23 @@ import { UserGame } from './interfaces/user'
 import { GameData, OnlineGameData, Player } from './interfaces/game'
 import { AnalyseData, OnlineAnalyseData } from './interfaces/analyse'
 import { isSynthetic } from '~/ui/analyse/util'
+import { readDestsFromString } from '~/chess'
 
 export const analysableVariants = ['standard', 'crazyhouse', 'chess960', 'fromPosition', 'kingOfTheHill', 'threeCheck', 'atomic', 'antichess', 'horde', 'racingKings']
 
-export function parsePossibleMoves(dests?: StringMap | string): DestsMap {
-  if (!dests) return {}
-  const dec: DestsMap = {}
-  if (typeof dests === 'string')
-    dests.split(' ').forEach(ds => {
-      dec[ds.slice(0, 2)] = ds.slice(2).match(/.{2}/g) as Key[]
-    })
-    else for (const k in dests) dec[k] = dests[k]!.match(/.{2}/g) as Key[]
-  return dec
+export function parsePossibleMoves(dests?: StringMap | string): cg.Dests {
+  const empty = new Map<cg.Key, cg.Key[]>()
+  if (!dests) return empty
+  if (typeof dests === 'string') {
+    return readDestsFromString(dests) ?? empty
+  } else {
+    const dec: cg.Dests = empty
+    for (const k in dests) {
+      dec.set(k as Key, dests[k]!.match(/.{2}/g) as Key[])
+    }
+
+    return dec
+  }
 }
 
 export function playable(data: GameData | AnalyseData): boolean {

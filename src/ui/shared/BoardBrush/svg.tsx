@@ -1,5 +1,5 @@
 import h from 'mithril/hyperscript'
-import * as cgUtil from '../../../chessground/util'
+import * as cgUtil from 'chessground/util'
 import { Glyph } from '../tree/interfaces'
 import { Shape } from '.'
 import { Brush } from './brushes'

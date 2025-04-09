@@ -1,10 +1,11 @@
 import redraw from '../../../utils/redraw'
-import * as cg from '../../../chessground/interfaces'
+import { Config as CgConfig } from 'chessground/config'
 import * as helper from '../../helper'
 import settings from '../../../settings'
 import h from 'mithril/hyperscript'
 import { PromotingInterface } from '../round'
 import { noop } from '~/utils'
+import { promote } from '~/chess/promote'
 
 type PromoteCallback = (orig: Key, dest: Key, prom: Role) => void
 export interface Promoting {
@@ -32,13 +33,13 @@ function start(ctrl: PromotingInterface, orig: Key, dest: Key, callback: Promote
 function finish(ctrl: PromotingInterface, role: Role) {
   const promoting = ctrl.promoting
   if (promoting) {
-    ctrl.chessground.promote(promoting.dest, role)
+    promote(ctrl.chessground, promoting.dest, role)
     promoting.callback(promoting.orig, promoting.dest, role)
   }
   ctrl.promoting = null
 }
 
-function cancel(ctrl: PromotingInterface, cgConfig?: cg.SetConfig) {
+function cancel(ctrl: PromotingInterface, cgConfig?: CgConfig) {
   if (ctrl.promoting) {
     ctrl.promoting = null
     if (cgConfig) ctrl.chessground.set(cgConfig)

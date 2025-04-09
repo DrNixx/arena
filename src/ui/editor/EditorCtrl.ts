@@ -6,8 +6,8 @@ import { Setup, Material, RemainingChecks } from 'chessops/setup'
 import { Castles, setupPosition } from 'chessops/variant'
 import { makeFen, parseFen, parseCastlingFen, INITIAL_FEN, EMPTY_FEN } from 'chessops/fen'
 
-import Chessground from '../../chessground/Chessground'
-import * as cgDrag from '../../chessground/drag'
+import { Api as CgApi } from 'chessground/api';
+import * as cgDrag from 'chessground/drag'
 import router from '../../router'
 import { loadLocalJsonFile } from '../../utils'
 import redraw from '../../utils/redraw'
@@ -18,12 +18,14 @@ import continuePopup, { Controller as ContinuePopupCtrl } from '../shared/contin
 import i18n from '../../i18n'
 import drag from './drag'
 import { EditorState, BoardPosition, BoardPositionCategory, CastlingToggle, CastlingToggles, CASTLING_TOGGLES } from './interfaces'
+import { BoardInterface } from '../shared/round'
+import { Config } from 'chessground/config'
 
-export default class EditorCtrl {
+export default class EditorCtrl implements BoardInterface {
   public menu: MenuInterface
   public pasteFenPopup: PasteFenPopupCtrl
   public continuePopup: ContinuePopupCtrl
-  public chessground: Chessground
+  public chessground!: CgApi
 
   public initFen: string
   public pockets: Material | undefined
@@ -70,7 +72,15 @@ export default class EditorCtrl {
       redraw()
     })
 
-    this.chessground = new Chessground({
+    this.setFen(this.initFen)
+  }
+
+  setChessground(api: CgApi): void {
+    this.chessground = api;
+  }
+
+  getGroundConfig(): Config {
+    return {
       fen: this.initFen,
       orientation: 'white',
       movable: {
@@ -88,15 +98,17 @@ export default class EditorCtrl {
         enabled: false
       },
       draggable: {
-        magnified: settings.game.magnified(),
+        autoDistance: settings.game.magnified(),
         deleteOnDropOff: true
       },
       events: {
         change: this.onChange
       }
-    })
+    };
+  }
 
-    this.setFen(this.initFen)
+  canDrop(): boolean {
+    return true;
   }
 
   bottomColor(): Color {
@@ -122,8 +134,8 @@ export default class EditorCtrl {
   }
 
   public onstart = (e: TouchEvent): void => drag(this, e)
-  public onmove = (e: TouchEvent): void => cgDrag.move(this.chessground, e)
-  public onend = (e: TouchEvent): void => cgDrag.end(this.chessground, e)
+  public onmove = (e: TouchEvent): void => cgDrag.move(this.chessground.state, e)
+  public onend = (e: TouchEvent): void => cgDrag.end(this.chessground.state, e)
 
   public editorOnCreate = (vn: Mithril.VnodeDOM): void => {
     if (!vn.dom) return

@@ -31,7 +31,7 @@ export default function view(ctrl: CoordCtrl): Mithril.Children {
       ]),
       h(Board, {
         variant: 'standard',
-        chessground: ctrl.chessground
+        ctrl: ctrl
       }),
     ]),
     h('div.table.training-tableWrapper', [

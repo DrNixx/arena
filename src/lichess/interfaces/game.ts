@@ -1,3 +1,4 @@
+import * as cg from 'chessground/types';
 import { User } from './user'
 import { ChatMsg } from './chat'
 import { ClockState } from '../../ui/shared/clock/interfaces'
@@ -223,7 +224,7 @@ export interface GameStep {
   readonly uci: string | null
   readonly check: boolean
   readonly checkCount?: CheckCount
-  readonly dests?: DestsMap
+  readonly dests?: cg.Dests
   readonly drops?: ReadonlyArray<string>
   readonly crazy?: {
     readonly pockets: Pockets

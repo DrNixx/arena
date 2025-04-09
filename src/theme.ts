@@ -104,7 +104,7 @@ function createStylesheetRule(
   const css = theme === 'bg' ?
     `.view-container.transp.${key} > main { background-image: url(${dataUrl}); }` :
     `:root { --board-background: url(${dataUrl}); }\n` +
-    `.board-${key} > .cg-board { background-image: var(--board-background); }\n` +
+    `.board-${key} > cg-container > cg-board::before { background-image: var(--board-background); }\n` +
     `.game_menu_button.${key}::before { background-image: var(--board-background); background-size: 40px; }`
 
   styleEl.appendChild(document.createTextNode(css))

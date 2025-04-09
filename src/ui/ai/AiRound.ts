@@ -1,6 +1,6 @@
 import { Share } from '@capacitor/share'
 import i18n from '../../i18n'
-import Chessground from '../../chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
 import router from '../../router'
 import * as chess from '../../chess'
 import * as chessFormat from '../../utils/chessFormat'
@@ -28,6 +28,8 @@ import Replay from '../shared/offlineRound/Replay'
 import actions, { AiActionsCtrl } from './actions'
 import Engine from './engine'
 import newGameMenu, { NewAiGameCtrl } from './newAiGame'
+import { Config } from 'chessground/config';
+import { readDests } from '../../chess';
 
 interface InitPayload {
   variant: VariantKey
@@ -36,7 +38,7 @@ interface InitPayload {
 
 export default class AiRound implements AiRoundInterface, PromotingInterface {
   public data!: OfflineGameData
-  public chessground!: Chessground
+  public chessground!: CgApi
   public replay?: Replay
   public actions: AiActionsCtrl
   public newGameMenu: NewAiGameCtrl
@@ -90,6 +92,14 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
     }
   }
 
+  setChessground(api: CgApi): void {
+    this.chessground = api;
+  }
+
+  getGroundConfig(): Config {
+    return ground.makeConfig(this.data, this.replay!.situation(), this.userMove, this.onUserNewPiece, this.onMove, this.onNewPiece);
+  }
+
   private init(data: OfflineGameData, situations: Array<chess.GameSituation>, ply: number) {
     this.newGameMenu.close()
     this.actions.close()
@@ -109,12 +119,6 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
       )
     } else {
       this.replay.init(variant, initialFen, situations, ply)
-    }
-
-    if (!this.chessground) {
-      this.chessground = ground.make(this.data, this.replay.situation(), this.userMove, this.onUserNewPiece, this.onMove, this.onNewPiece)
-    } else {
-      ground.reload(this.chessground, this.data, this.replay.situation())
     }
 
     if (this.engine && this.engine.variant === variant) {
@@ -232,7 +236,7 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
     const to = <Key>bestmove.slice(2, 4)
     const role = chessFormat.uciToProm(bestmove)
     this.vm.engineSearching = false
-    this.chessground.apiMove(from, to)
+    this.chessground.move(from, to)
     this.replay?.addMove(from, to, role)
     redraw()
   }
@@ -242,7 +246,7 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
     const role = chessFormat.uciToDropRole(bestdrop)
     const piece = { role, color: this.data.opponent.color }
     this.vm.engineSearching = false
-    this.chessground.apiNewPiece(piece, pos)
+    this.chessground.newPiece(piece, pos)
     this.replay?.addDrop(role, pos)
     redraw()
   }
@@ -309,9 +313,11 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
       this.chessground.set({
         fen: sit.fen,
         turnColor: sit.player,
-        lastMove: lastUci ? chessFormat.uciToMoveOrDrop(lastUci) : null,
-        dests: sit.dests,
-        movableColor: sit.player === this.data.player.color ? sit.player : null,
+        lastMove: lastUci ? chessFormat.uciToMoveOrDrop(lastUci) : undefined,
+        movable: {
+          color: sit.player === this.data.player.color ? sit.player : undefined,
+          dests: readDests(sit.dests),
+        },
         check: sit.check
       })
     }

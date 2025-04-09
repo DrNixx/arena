@@ -3,7 +3,7 @@ import { Share } from '@capacitor/share'
 import { PluginListenerHandle } from '@capacitor/core'
 import sound from '../../sound'
 import router from '../../router'
-import Chessground from '../../chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
 import * as chess from '../../chess'
 import * as chessFormat from '../../utils/chessFormat'
 import settings from '../../settings'
@@ -28,6 +28,8 @@ import importGamePopup, { Controller as ImportGameController } from './importGam
 
 import clockSet from '../shared/clock/clockSet'
 import { IChessClock, ClockType } from '../shared/clock/interfaces'
+import { readDests } from '../../chess'
+
 
 interface InitPayload {
   variant: VariantKey
@@ -40,7 +42,7 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
   public actions: any // TODO
   public newGameMenu: NewOtbGameCtrl
   public importGamePopup: ImportGameController
-  public chessground!: Chessground
+  public chessground!: CgApi
   public replay?: Replay
   public vm: OtbVM
   public clock?: IChessClock
@@ -96,6 +98,14 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
     })
   }
 
+  setChessground(api: CgApi): void {
+    this.chessground = api;
+  }
+  
+  getGroundConfig() {
+    return ground.makeConfig(this.data, this.replay!.situation(), this.userMove, this.onUserNewPiece, this.onMove, this.onNewPiece)
+  }
+
   public unload() {
     this.appStateListener.then((v) => v.remove)
     this.saveClock()
@@ -130,12 +140,7 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
       this.clock = undefined
     }
 
-    if (!this.chessground) {
-      this.chessground = ground.make(this.data, this.replay.situation(), this.userMove, this.onUserNewPiece, this.onMove, this.onNewPiece)
-    } else {
-      ground.reload(this.chessground, this.data, this.replay.situation())
-    }
-
+    ground.reload(this.chessground, this.data, this.replay.situation())
     redraw()
   }
 
@@ -265,9 +270,11 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
       this.chessground.set({
         fen: sit.fen,
         turnColor: sit.player,
-        lastMove: lastUci ? chessFormat.uciToMoveOrDrop(lastUci) : null,
-        dests: sit.dests,
-        movableColor: sit.player,
+        lastMove: lastUci ? chessFormat.uciToMoveOrDrop(lastUci) : undefined,
+        movable: { 
+          color: sit.player,
+          dests: readDests(sit.dests)
+        },
         check: sit.check
       })
     }

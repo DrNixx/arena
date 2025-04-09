@@ -1,9 +1,11 @@
 import { INITIAL_FEN } from 'chessops/fen'
-import Chessground from '~/chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
 import asyncStorage from '~/asyncStorage'
 import settings from '~/settings'
 import { randomColor } from '~/utils'
 import redraw from '~/utils/redraw'
+import { BoardInterface } from '../shared/round';
+import { Config } from 'chessground/config';
 
 const FILES = 'abcdefgh'
 const RANKS = '12345678'
@@ -22,9 +24,9 @@ interface AverageScores {
   black: number | null
 }
 
-export default class CoordCtrl {
+export default class CoordCtrl implements BoardInterface {
   orientation: Color
-  chessground: Chessground
+  chessground!: CgApi
   coords: Key[] = []
   averageScores?: AverageScores | null
   wrongAnswer = false
@@ -36,18 +38,6 @@ export default class CoordCtrl {
 
   constructor() {
     this.orientation = this.getOrientation(settings.coordinates.colorChoice())
-    this.chessground = new Chessground({
-      fen: INITIAL_FEN,
-      orientation: this.orientation,
-      coordinates: false,
-      movable: {
-        free: false,
-        color: null,
-      },
-      events: {
-        select: (key) => this.handleSelect(key),
-      },
-    })
 
     asyncStorage.get<SavedScores>(storeKey)
     .then(saved => {
@@ -56,6 +46,29 @@ export default class CoordCtrl {
         redraw()
       }
     })
+  }
+
+  setChessground(api: CgApi): void {
+    this.chessground = api;
+  }
+
+  getGroundConfig(): Config {
+    return {
+      fen: INITIAL_FEN,
+      orientation: this.orientation,
+      coordinates: false,
+      movable: {
+        free: false,
+        color: undefined,
+      },
+      events: {
+        select: (key) => this.handleSelect(key),
+      },
+    };
+  }
+
+  canDrop(): boolean {
+    return false;
   }
 
   public getOrientation(color: Color | 'random'): Color {

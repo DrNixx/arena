@@ -1,7 +1,7 @@
 import { Share } from '@capacitor/share'
 import debounce from 'lodash-es/debounce'
 import throttle from 'lodash-es/throttle'
-import Chessground from '../../chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
 import { build as makeTree, ops as treeOps, path as treePath, TreeWrapper, Tree } from '../shared/tree'
 import router from '../../router'
 import { ErrorResponse } from '../../http'
@@ -23,11 +23,12 @@ import * as xhr from './xhr'
 import { VM, Data, PimpedGame, Feedback } from './interfaces'
 import { getUnsolved, syncPuzzleResult, syncAndLoadNewPuzzle, syncAndClearCache, nbRemainingPuzzles, puzzleLoadFailure } from './offlineService'
 import { Database } from './database'
+import { readDests } from '../../chess';
 
 export default class TrainingCtrl implements PromotingInterface {
   data!: Data
   menu: IMenuCtrl
-  chessground!: Chessground
+  chessground!: CgApi
   database: Database
   promoting: Promoting | null = null
 
@@ -53,6 +54,10 @@ export default class TrainingCtrl implements PromotingInterface {
     this.init(cfg)
 
     signals.afterLogin.add(this.retry)
+  }
+
+  canDrop(): boolean {
+    return true;
   }
 
   public player = (): Color => this.data.puzzle.color
@@ -274,10 +279,18 @@ export default class TrainingCtrl implements PromotingInterface {
     redraw()
   }
 
+  public setChessground(api: CgApi) {
+    this.chessground = api;
+  }
+
+  public getGroundConfig() {
+    return makeGround(this, this.userMove);
+  }
+
   private updateBoard() {
     const node = this.node
     const color: Color = node.ply % 2 === 0 ? 'white' : 'black'
-    const dests = chessFormat.readDests(node.dests)
+    const dests = readDests(node.dests)
     const config = {
       fen: node.fen,
       turnColor: color,
@@ -285,12 +298,10 @@ export default class TrainingCtrl implements PromotingInterface {
       movableColor: this.gameOver() ? null : this.data.puzzle.color,
       dests: dests || null,
       check: !!(node.check || node.san?.endsWith('+')),
-      lastMove: node.uci ? chessFormat.uciToMove(node.uci) : null
+      lastMove: node.uci ? chessFormat.uciToMove(node.uci) : undefined
     }
 
-    if (!this.chessground) {
-      this.chessground = new Chessground(makeGround(this, this.userMove))
-    } else {
+    if (this.chessground) {
       this.chessground.set(config)
     }
 

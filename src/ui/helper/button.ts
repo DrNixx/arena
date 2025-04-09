@@ -13,14 +13,19 @@ interface Boundaries {
   maxY: number
 }
 
+interface Point {
+  x: number
+  y: number
+}
+
 export default function ButtonHandler(
   el: HTMLElement,
-  tapHandler: (e: TouchEvent) => void,
-  holdHandler?: (e: TouchEvent) => void,
+  tapHandler: (e: TouchEvent|MouseEvent) => void,
+  holdHandler?: (e: TouchEvent|MouseEvent) => void,
   repeatHandler?: () => boolean,
   scrollX?: boolean,
   scrollY?: boolean,
-  getElement?: (e: TouchEvent) => HTMLElement | null,
+  getElement?: (e: TouchEvent|MouseEvent) => HTMLElement | null,
   preventEndDefault = true,
 ) {
 
@@ -50,53 +55,104 @@ export default function ButtonHandler(
     redrawSync()
   }
 
-  function onTouchStart(e: TouchEvent) {
-    const touch = e.changedTouches[0]
-    activeElement  = getElement ? getElement(e) : el
-    if (!activeElement) return
-    if ((activeElement as HTMLButtonElement).disabled === true) return
-    const boundingRect = activeElement.getBoundingClientRect()
-    startX = touch.clientX
-    startY = touch.clientY
+  function onPointerStart(e: TouchEvent | MouseEvent) {
+    // Получаем координаты в зависимости от типа события
+    let clientX: number, clientY: number;
+    
+    if (e instanceof TouchEvent) {
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    } else if (e instanceof MouseEvent) {
+        // Игнорируем правую кнопку мыши
+        if (e.button !== 0) return;
+        clientX = e.clientX;
+        clientY = e.clientY;
+    } else {
+        return;
+    }
+
+    activeElement = getElement ? getElement(e) : el;
+    if (!activeElement) return;
+    if ((activeElement as HTMLButtonElement).disabled === true) return;
+    
+    const boundingRect = activeElement.getBoundingClientRect();
+    startX = clientX;
+    startY = clientY;
     boundaries = {
-      minX: boundingRect.left,
-      maxX: boundingRect.right,
-      minY: boundingRect.top,
-      maxY: boundingRect.bottom
-    }
-    active = true
-    clearTimeout(activeTimeoutId)
-    // for ios: need to set it bc/ :active doesn't reset when moving away
-    activeElement.classList.add(ACTIVE_CLASS)
-    holdTimeoutID = setTimeout(() => onHold(e), HOLD_DURATION)
-    if (repeatHandler) repeatTimeoutId = setTimeout(() => {
-      batchRequestAnimationFrame(onRepeat)
-    }, 500)
-  }
-
-  function onTouchMove(e: TouchEvent) {
-    // if going out of bounds, no way to reenable the button
-    if (active && activeElement) {
-      const touch = e.changedTouches[0]
-      active = isActive(touch)
-      if (!active) {
-        clearTimeout(holdTimeoutID)
-        clearTimeout(repeatTimeoutId)
-        removeFromBatchAnimationFrame(onRepeat)
-        activeElement.classList.remove(ACTIVE_CLASS)
-      }
+        minX: boundingRect.left,
+        maxX: boundingRect.right,
+        minY: boundingRect.top,
+        maxY: boundingRect.bottom
+    };
+    
+    active = true;
+    clearTimeout(activeTimeoutId);
+    activeElement.classList.add(ACTIVE_CLASS);
+    
+    holdTimeoutID = setTimeout(() => onHold(e), HOLD_DURATION);
+    if (repeatHandler) {
+        repeatTimeoutId = setTimeout(() => {
+            batchRequestAnimationFrame(onRepeat);
+        }, 500);
     }
   }
 
-  function onTouchEnd(e: TouchEvent) {
-    if (e.cancelable && preventEndDefault) e.preventDefault()
-    clearTimeout(repeatTimeoutId)
-    removeFromBatchAnimationFrame(onRepeat)
+  function onPointerMove(e: TouchEvent | MouseEvent) {
+    // Если не активно или нет активного элемента, выходим
+    if (!active || !activeElement) return;
+
+    let clientX: number, clientY: number;
+
+    // Получаем координаты в зависимости от типа события
+    if (e instanceof TouchEvent) {
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    // Проверяем, находится ли курсор/палец в пределах элемента
+    active = isActive({ x: clientX, y: clientY });
+
+    if (!active) {
+        clearTimeout(holdTimeoutID);
+        clearTimeout(repeatTimeoutId);
+        removeFromBatchAnimationFrame(onRepeat);
+        activeElement.classList.remove(ACTIVE_CLASS);
+    }
+  }
+
+  function onPointerEnd(e: TouchEvent | MouseEvent) {
+    // Prevent default if needed (for both touch and mouse events)
+    if (e.cancelable && preventEndDefault) e.preventDefault();
+    
+    // Clean up timeouts and animation frames
+    clearTimeout(repeatTimeoutId);
+    removeFromBatchAnimationFrame(onRepeat);
+    
     if (active && activeElement) {
-      clearTimeout(holdTimeoutID)
-      activeTimeoutId = setTimeout(() => activeElement && activeElement.classList.remove(ACTIVE_CLASS), 80)
-      tapHandler(e)
-      active = false
+        clearTimeout(holdTimeoutID);
+        
+        // Remove active class with small delay (for visual feedback)
+        activeTimeoutId = setTimeout(() => {
+            if (activeElement) {
+                activeElement.classList.remove(ACTIVE_CLASS);
+            }
+        }, 80);
+        
+        // Handle the tap/click
+        tapHandler(e);
+        active = false;
+    }
+    
+    // Additional cleanup for touch events
+    if (e instanceof TouchEvent && e.touches.length === 0) {
+        active = false;
     }
   }
 
@@ -119,7 +175,7 @@ export default function ButtonHandler(
     e.stopPropagation()
   }
 
-  function onHold(e: TouchEvent) {
+  function onHold(e: TouchEvent|MouseEvent) {
     if (holdHandler) {
       holdHandler(e)
       active = false
@@ -129,9 +185,9 @@ export default function ButtonHandler(
     }
   }
 
-  function isActive(touch: Touch) {
-     const x = touch.clientX,
-      y = touch.clientY,
+  function isActive(point: Point) {
+     const x = point.x,
+      y = point.y,
       b = boundaries
     let dX = 0,
       dY = 0
@@ -149,10 +205,18 @@ export default function ButtonHandler(
 
   const passiveConf: any = { passive: true }
 
-  el.addEventListener('touchstart', onTouchStart, passiveConf)
-  el.addEventListener('touchmove', onTouchMove, passiveConf)
-  el.addEventListener('touchend', onTouchEnd, false)
-  el.addEventListener('touchcancel', onTouchCancel, false)
+  if (!('ontouchstart' in window)) {
+    el.addEventListener('mousedown', onPointerStart, passiveConf)
+    el.addEventListener('mousemove', onPointerMove, passiveConf)
+    el.addEventListener('mouseup', onPointerEnd, false)
+    el.addEventListener('mouseleave', onTouchCancel, false)
+  } else {
+    el.addEventListener('touchstart', onPointerStart, passiveConf)
+    el.addEventListener('touchmove', onPointerMove, passiveConf)
+    el.addEventListener('touchend', onPointerEnd, false)
+    el.addEventListener('touchcancel', onTouchCancel, false)
+  }
+
   el.addEventListener('contextmenu', onContextMenu, false)
 }
 

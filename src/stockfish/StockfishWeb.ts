@@ -10,7 +10,7 @@ export class StockfishWeb {
       if (this.worker) {
         setTimeout(resolve, 1)
       } else {
-        this.worker = new Worker('../stockfish.js')
+        this.worker = new Worker('./stockfish.js')
         this.worker.onmessage = msg => {
 
           const ev: any = new Event('stockfish')

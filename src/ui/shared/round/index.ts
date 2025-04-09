@@ -1,4 +1,5 @@
-import Chessground from '../../../chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
+import { Config as CgConfig } from 'chessground/config';
 import Replay from '../offlineRound/Replay'
 import { OnlineGameData, OfflineGameData, GameData, GameStatus } from '../../../lichess/interfaces/game'
 import { AnalyseData } from '../../../lichess/interfaces/analyse'
@@ -11,13 +12,14 @@ export type Position = 'player' | 'opponent'
 export type Material = { pieces: { [k: string]: number }, score: number }
 
 export interface BoardInterface {
-  chessground: Chessground
-  canDrop(): boolean
+  chessground: CgApi;
+  setChessground(api: CgApi): void;
+  getGroundConfig(): CgConfig;
+  canDrop(): boolean;
 }
 
-export interface PromotingInterface {
+export interface PromotingInterface extends BoardInterface {
   promoting: Promoting | null
-  chessground: Chessground
   data: GameData | AnalyseData | TrainingData
   player: () => Color
 }

@@ -1,4 +1,5 @@
 import h from 'mithril/hyperscript'
+import {opposite} from 'chessground/util'
 import * as chessFormat from '../../../utils/chessFormat'
 import gameStatusApi from '../../../lichess/status'
 import { findTag, gameResult } from '../../../lichess/interfaces/study'
@@ -8,14 +9,13 @@ import { Shape } from '../../shared/BoardBrush'
 import Clock from './Clock'
 import { povDiff } from '../ceval/winningChances'
 import AnalyseCtrl from '../AnalyseCtrl'
-import { opposite } from '~/chessground/util'
 
 export default function renderBoard(ctrl: AnalyseCtrl) {
   return h('div.analyse-boardWrapper', [
     playerBar(ctrl, ctrl.topColor()),
     h(Board, {
       variant: ctrl.data.game.variant.key,
-      chessground: ctrl.chessground,
+      ctrl: ctrl,
       shapes: computeShapes(ctrl),
       clearableShapes: ctrl.node.shapes,
       wrapperClasses: ctrl.settings.s.smallBoard ? 'halfsize' : '',

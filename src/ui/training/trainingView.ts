@@ -33,7 +33,7 @@ export function renderHeader(ctrl: TrainingCtrl): Mithril.Children {
 export function renderContent(ctrl: TrainingCtrl, key: string): Mithril.Vnode {
   const board = h(Board, {
     variant: ctrl.data.game.variant.key,
-    chessground: ctrl.chessground
+    ctrl: ctrl
   })
 
   return h.fragment({ key }, [

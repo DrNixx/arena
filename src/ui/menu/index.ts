@@ -77,7 +77,7 @@ export function getServerLags() {
   }
 }
 
-export const backdropCloseHandler = ontap((e: TouchEvent) => {
+export const backdropCloseHandler = ontap((e: TouchEvent | MouseEvent) => {
   e.stopPropagation()
   mainMenuCtrl.close()
 })

@@ -110,7 +110,7 @@ function getButton(e: Event): HTMLElement | undefined {
 interface GameDataSet extends DOMStringMap {
   id: string
 }
-function onTap (ctrl: ISearchCtrl, e: TouchEvent) {
+function onTap (ctrl: ISearchCtrl, e: TouchEvent | MouseEvent) {
   const starButton = getButton(e)
   const el = helper.closest(e, '.userGame')
   const id = (el?.dataset as GameDataSet).id

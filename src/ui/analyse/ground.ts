@@ -1,14 +1,14 @@
-import Chessground from '../../chessground/Chessground'
-import * as cg from '../../chessground/interfaces'
+import { Config as CgConfig } from 'chessground/config'
 import settings from '../../settings'
 import { animationDuration } from '../../utils'
+import { SetConfig } from '~/utils/types';
 
-function makeConfig(
-  config: cg.SetConfig,
+export function makeConfig(
+  config: SetConfig,
   orientation: Color,
   onMove: (orig: Key, dest: Key, capturedPiece?: Piece) => void,
   onNewPiece: (piece: Piece, pos: Key) => void
-): cg.InitConfig {
+): CgConfig {
   const pieceMoveConf = settings.game.pieceMove()
   return {
     fen: config.fen,
@@ -26,7 +26,7 @@ function makeConfig(
     },
     draggable: {
       enabled: pieceMoveConf === 'drag' || pieceMoveConf === 'both',
-      magnified: settings.game.magnified()
+      autoDistance: settings.game.magnified()
     },
     selectable: {
       enabled: pieceMoveConf === 'tap' || pieceMoveConf === 'both'
@@ -47,15 +47,4 @@ function makeConfig(
       duration: animationDuration(settings.game.animations()),
     }
   }
-}
-
-export default {
-  make(
-    config: cg.SetConfig,
-    orientation: Color,
-    onMove: (orig: Key, dest: Key, capturedPiece?: Piece) => void,
-    onNewPiece: (piece: Piece, pos: Key) => void
-  ) {
-    return new Chessground(makeConfig(config, orientation, onMove, onNewPiece))
-  },
 }

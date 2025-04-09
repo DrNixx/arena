@@ -215,17 +215,17 @@ export function fadesOut(e: Event, callback: () => void, selector?: string, time
   }
 }
 
-type TapHandler = (e: TouchEvent) => void
+type TapHandler = (e: TouchEvent | MouseEvent) => void
 type RepeatHandler = () => boolean
 
-function createTapHandler(tapHandler: TapHandler, holdHandler?: TapHandler, repeatHandler?: RepeatHandler, scrollX?: boolean, scrollY?: boolean, getElement?: (e: TouchEvent) => HTMLElement | null, preventEndDefault?: boolean) {
+function createTapHandler(tapHandler: TapHandler, holdHandler?: TapHandler, repeatHandler?: RepeatHandler, scrollX?: boolean, scrollY?: boolean, getElement?: (e: TouchEvent | MouseEvent) => HTMLElement | null, preventEndDefault?: boolean) {
   return function(vnode: Mithril.VnodeDOMAny) {
     ButtonHandler(vnode.dom as HTMLElement,
-      (e: TouchEvent) => {
+      (e: TouchEvent | MouseEvent) => {
         tapHandler(e)
         redraw()
       },
-      holdHandler ? (e: TouchEvent) => utils.autoredraw(() => holdHandler(e)) : undefined,
+      holdHandler ? (e: TouchEvent | MouseEvent) => utils.autoredraw(() => holdHandler(e)) : undefined,
       repeatHandler,
       scrollX,
       scrollY,
@@ -238,23 +238,28 @@ function createTapHandler(tapHandler: TapHandler, holdHandler?: TapHandler, repe
 export function ontouch(handler: TapHandler) {
   return (vnode: Mithril.VnodeDOMAny) => {
     const dom = vnode.dom as HTMLElement
-    dom.addEventListener('touchstart', handler)
+    
+    if (!('ontouchstart' in window)) {
+      dom.addEventListener('mousedown', handler)
+    } else {
+      dom.addEventListener('touchstart', handler)
+    }
   }
 }
 
-export function ontap(tapHandler: TapHandler, holdHandler?: TapHandler, repeatHandler?: RepeatHandler, getElement?: (e: TouchEvent) => HTMLElement | null) {
+export function ontap(tapHandler: TapHandler, holdHandler?: TapHandler, repeatHandler?: RepeatHandler, getElement?: (e: TouchEvent | MouseEvent) => HTMLElement | null) {
   return createTapHandler(tapHandler, holdHandler, repeatHandler, false, false, getElement)
 }
 
-export function ontapX(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent) => HTMLElement | null) {
+export function ontapX(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent | MouseEvent) => HTMLElement | null) {
   return createTapHandler(tapHandler, holdHandler, undefined, true, false, getElement)
 }
 
-export function ontapY(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent) => HTMLElement | null, preventEndDefault = true) {
+export function ontapY(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent | MouseEvent) => HTMLElement | null, preventEndDefault = true) {
   return createTapHandler(tapHandler, holdHandler, undefined, false, true, getElement, preventEndDefault)
 }
 
-export function ontapXY(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent) => HTMLElement | null, preventEndDefault = true) {
+export function ontapXY(tapHandler: TapHandler, holdHandler?: TapHandler, getElement?: (e: TouchEvent | MouseEvent) => HTMLElement | null, preventEndDefault = true) {
   return createTapHandler(tapHandler, holdHandler, undefined, true, true, getElement, preventEndDefault)
 }
 

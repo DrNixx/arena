@@ -1,8 +1,9 @@
 import h from 'mithril/hyperscript'
 import { batchRequestAnimationFrame } from '../../utils/batchRAF'
-import Chessground from '../../chessground/Chessground'
+import { Api as CgApi } from 'chessground/api';
 import { uciToMove } from '../../utils/chessFormat'
 import settings from '../../settings'
+import { Chessground } from 'chessground';
 
 export interface Attrs {
   readonly fen: string
@@ -22,38 +23,28 @@ interface Config {
   minimalDom: boolean
   coordinates: boolean
   fixed: boolean
-  lastMove: KeyPair | null
+  lastMove: Key[] | undefined
 }
 
 interface State {
-  ground: Chessground
+  ground: CgApi
   pieceTheme: string
   boardTheme: string
 }
 
 const ViewOnlyBoard: Mithril.Component<Attrs, State> = {
-  oninit({ attrs }) {
+  oninit() {
     this.pieceTheme = settings.general.theme.piece()
     this.boardTheme = settings.general.theme.board()
-    this.ground = new Chessground(makeConfig(attrs))
   },
 
   oncreate({ attrs, dom }) {
-    const bounds = attrs.fixed ? {
-      // dummy bounds since fixed board doesn't use bounds
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 0,
-      width: 0
-    } as DOMRect : dom.getBoundingClientRect()
     if (attrs.delay !== undefined) {
       setTimeout(() => {
-        this.ground.attach(dom as HTMLElement, bounds)
+        this.ground = Chessground(dom as HTMLElement, makeConfig(attrs))
       }, attrs.delay)
     } else {
-      this.ground.attach(dom as HTMLElement, bounds)
+      this.ground = Chessground(dom as HTMLElement, makeConfig(attrs))
     }
   },
 
@@ -76,13 +67,13 @@ const ViewOnlyBoard: Mithril.Component<Attrs, State> = {
   },
 
   onremove() {
-    this.ground.detach()
+    this.ground.stop()
   },
 
   view({ attrs }) {
 
     const boardClass = [
-      'display_board',
+      'cg-wrap',
       attrs.customPieceTheme || this.pieceTheme,
       `board-${this.boardTheme}`,
       attrs.variant || 'standard'
@@ -102,7 +93,7 @@ function makeConfig({ fen, lastMove, orientation, fixed = true }: Attrs) {
     minimalDom: true,
     coordinates: false,
     fen,
-    lastMove: lastMove ? uciToMove(lastMove) : null,
+    lastMove: lastMove ? uciToMove(lastMove) : undefined,
     orientation: orientation || 'white'
   }
 

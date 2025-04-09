@@ -1,11 +1,28 @@
 // base
-.cg-board
-  background-image url('../../images/board/svg/brown.svg')
-  user-select none
-  background-size cover
-  position relative
+cg-container
+  position absolute
   width 100%
   height 100%
+  display block
+  top 0
+  right 0
+
+cg-board
+  user-select none
+  top 0
+  left 0
+  line-height 0
+  &::before
+    content ""
+    left 0
+    top 0
+    height 100%
+    width 100%
+    background-size cover;
+    position absolute;
+    border-radius inherit;
+    box-shadow inherit;
+    background-image url('../../images/board/svg/brown.svg')
 
 square
   position absolute
@@ -23,9 +40,9 @@ square
       background radial-gradient(transparent 0%,transparent 80%,rgba(20,30,85,0.3) 80%)
   &.last-move
     background-color rgba(155, 199, 0, 0.41)
-  .board-green .cg-board > &.last-move,
-  .board-green-plastic .cg-board > &.last-move,
-  .board-marble .cg-board > &.last-move
+  .board-green cg-board > &.last-move,
+  .board-green-plastic cg-board > &.last-move,
+  .board-marble cg-board > &.last-move
     background-color: rgba(0, 155, 199, 0.41)
   &.check
     background radial-gradient(ellipse at center, rgba(255, 0, 0, 1) 0%, rgba(231, 0, 0, 1) 25%, rgba(169, 0, 0, 0) 89%, rgba(158, 0, 0, 0) 100%)
@@ -118,3 +135,26 @@ li-coords
 
 li-coord
   flex 1 1 auto
+
+cg-container .cg-shapes, cg-container .cg-custom-svgs, cg-auto-pieces
+  overflow visible
+  position absolute
+  top 0px
+  left 0px
+  width 100%
+  height 100%
+  pointer-events none
+
+cg-container .cg-shapes
+  opacity .6
+  overflow hidden
+  z-index 2
+
+cg-container .cg-custom-svgs
+  z-index 4
+
+cg-auto-pieces
+  z-index 2
+
+cg-resize
+  display none

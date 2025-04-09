@@ -1,5 +1,3 @@
-import isObject from 'lodash-es/isObject'
-
 const uciRoleMap: {[k: string]: Role } = {
   P: 'pawn',
   B: 'bishop',
@@ -32,30 +30,30 @@ export const altCastles: StringMap = {
   e8h8: 'e8g8'
 }
 
-export function uciToMove(uci: string): KeyPair {
-  return [<Key>uci.substr(0, 2), <Key>uci.substr(2, 2)]
+export function uciToMove(uci: string): Key[] {
+  return [<Key>uci.substring(0, 2), <Key>uci.substring(2, 4)]
 }
 
 export function uciToMoveOrDrop(uci: string): KeyPair {
-  if (uci[1] === '@') return [<Key>uci.substr(2, 2), <Key>uci.substr(2, 2)]
-  return [<Key>uci.substr(0, 2), <Key>uci.substr(2, 2)]
+  if (uci[1] === '@') return [<Key>uci.substring(2, 4), <Key>uci.substring(2, 2)]
+  return [<Key>uci.substring(0, 2), <Key>uci.substring(2, 4)]
 }
 
 export function uciToProm(uci: string): Role | undefined {
-  const p = uci.substr(4, 1)
+  const p = uci.substring(4, 5)
   return uciRoleMap[p]
 }
 
 export function uciToDropPos(uci: string): Key {
-  return <Key>uci.substr(2, 2)
+  return <Key>uci.substring(2, 4)
 }
 
 export function uciToDropRole(uci: string): Role {
-  return uciRoleMap[uci.substr(0, 1)]
+  return uciRoleMap[uci.substring(0, 1)]
 }
 
 export function uciTolastDrop(uci: string): KeyPair {
-  return [<Key>uci.substr(2, 2), <Key>uci.substr(2, 2)]
+  return [<Key>uci.substring(2, 4), <Key>uci.substring(2, 4)]
 }
 
 export function fixCrazySan(san: San): San {
@@ -64,24 +62,6 @@ export function fixCrazySan(san: San): San {
 
 export function decomposeUci(uci: Uci): [Key, Key, SanChar] {
   return [<Key>uci.slice(0, 2), <Key>uci.slice(2, 4), <SanChar>uci.slice(4, 5)]
-}
-
-function isString(o: DestsMap | string): o is string {
-  return typeof o === 'string'
-}
-
-function isDestMap(o: DestsMap | string): o is DestsMap {
-  return isObject(o)
-}
-
-export function readDests(lines?: DestsMap | string): DestsMap | null {
-  if (lines === undefined) return null
-  if (isDestMap(lines)) return lines
-  const dests: DestsMap = {}
-  if (lines && isString(lines)) lines.split(' ').forEach(line => {
-    dests[piotr2key[line[0]]] = line.split('').slice(1).map(c => piotr2key[c])
-  })
-  return dests
 }
 
 export const piotr2key: {[i: string]: Key } = {

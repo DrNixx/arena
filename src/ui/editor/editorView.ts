@@ -13,13 +13,13 @@ import EditorCtrl from './EditorCtrl'
 import menu, { renderSelectColorPosition, renderCastlingOptions } from './menu'
 
 export default function view(ctrl: EditorCtrl) {
-  const color = ctrl.chessground.state.orientation
+  const color = ctrl.chessground?.state.orientation ?? 'white'
   const opposite = color === 'white' ? 'black' : 'white'
   const isPortrait = helper.isPortrait()
 
   const board = h(Board, {
     variant: 'standard',
-    chessground: ctrl.chessground,
+    ctrl: ctrl,
     wrapperClasses: 'editor-board',
   })
 
@@ -73,7 +73,9 @@ function renderActionsBar(ctrl: EditorCtrl) {
       oncreate: helper.ontap(ctrl.menu.open)
     }) : null,
     h('button.action_bar_button[data-icon=B]', {
-      oncreate: helper.ontap(ctrl.chessground.toggleOrientation)
+      oncreate: helper.ontap(() => {
+        ctrl.chessground.toggleOrientation()
+      })
     }),
     h('button.action_bar_button[data-icon=U]', {
       disabled: !state.playable,

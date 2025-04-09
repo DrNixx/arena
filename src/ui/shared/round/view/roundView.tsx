@@ -34,6 +34,7 @@ import OnlineRound from '../OnlineRound'
 import { countChecks, NO_CHECKS } from '../util'
 import { Position, Material } from '../'
 import times from 'lodash-es/times'
+import { getMaterialDiff } from '~/chess/material'
 
 export default function view(ctrl: OnlineRound) {
   const isPortrait = helper.isPortrait()
@@ -210,7 +211,7 @@ function renderHeader(ctrl: OnlineRound) {
 function renderContent(ctrl: OnlineRound, isPortrait: boolean) {
   const vd = helper.viewportDim()
 
-  const material = ctrl.chessground.getMaterialDiff()
+  const material = getMaterialDiff(ctrl.chessground.state)
 
   const checksCount = ctrl.data.player.checks || ctrl.data.opponent.checks ?
     countChecks(ctrl.data.steps, ctrl.vm.ply) : NO_CHECKS
@@ -225,7 +226,7 @@ function renderContent(ctrl: OnlineRound, isPortrait: boolean) {
 
   const board = h(Board, {
     variant: ctrl.data.game.variant.key,
-    chessground: ctrl.chessground,
+    ctrl: ctrl,
   }, playable ? [
     !myTurn ? renderExpiration(ctrl, 'opponent', myTurn) : null,
     myTurn ? renderExpiration(ctrl, 'player', myTurn) : null,

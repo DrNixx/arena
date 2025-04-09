@@ -95,7 +95,7 @@ export default {
 function renderBoard(fen: string, orientation: Color, boardTheme: string) {
 
   const boardClass = [
-    'display_board',
+    'cg-wrap',
     `board-${boardTheme}`,
   ].join(' ')
 

@@ -1,11 +1,11 @@
-import * as cg from '../../chessground/interfaces'
+import { Config as CgConfig } from 'chessground/config'
 import settings from '../../settings'
 
 import TrainingCtrl from './TrainingCtrl'
 
 export default function makeConfig(
   ctrl: TrainingCtrl,
-  userMove: (orig: Key, dest: Key) => void): cg.InitConfig {
+  userMove: (orig: Key, dest: Key) => void): CgConfig {
 
   const pieceMoveConf = settings.game.pieceMove()
 
@@ -37,7 +37,7 @@ export default function makeConfig(
     draggable: {
       enabled: pieceMoveConf === 'drag' || pieceMoveConf === 'both',
       distance: 3,
-      magnified: settings.game.magnified()
+      autoDistance: settings.game.magnified()
     },
     selectable: {
       enabled: pieceMoveConf === 'tap' || pieceMoveConf === 'both'

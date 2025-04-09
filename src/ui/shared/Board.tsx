@@ -1,12 +1,14 @@
 import h from 'mithril/hyperscript'
+import { Api as CgApi } from 'chessground/api';
 import settings from '../../settings'
 import redraw from '../../utils/redraw'
-import Chessground from '../../chessground/Chessground'
 import BoardBrush, { Shape } from './BoardBrush'
+import { Chessground } from 'chessground';
+import { BoardInterface } from './round';
 
 export interface Attrs {
   variant: VariantKey
-  chessground: Chessground
+  ctrl: BoardInterface
   wrapperClasses?: string
   customPieceTheme?: string
   shapes?: ReadonlyArray<Shape>
@@ -15,6 +17,7 @@ export interface Attrs {
 }
 
 interface State {
+  ground: CgApi
   wrapperOnCreate(vnode: Mithril.VnodeDOM<any, any>): void
   boardOnCreate(vnode: Mithril.VnodeDOM<any, any>): void
   boardOnRemove(): void
@@ -29,16 +32,22 @@ interface State {
 export default {
   oninit(vnode) {
 
-    const { chessground, canClearShapes } = vnode.attrs
+    const { ctrl, canClearShapes } = vnode.attrs
 
     this.wrapperOnCreate = ({ dom }) => {
       if (canClearShapes) {
-        dom.addEventListener('touchstart', () => {
+        const clear = () => {
           if (!this.shapesCleared) {
             this.shapesCleared = true
             redraw()
           }
-        })
+        }
+
+        if (!('ontouchstart' in window)) {
+          dom.addEventListener('mousedown', clear)
+        } else {
+          dom.addEventListener('touchstart', clear)  
+        }
       }
       this.bounds = dom.getBoundingClientRect()
       this.onResize = () => {
@@ -48,11 +57,12 @@ export default {
     }
 
     this.boardOnCreate = ({ dom }: Mithril.VnodeDOM<any, any>) => {
-      chessground.attach(dom as HTMLElement, this.bounds!)
+      this.ground = Chessground(dom as HTMLElement, ctrl.getGroundConfig())
+      ctrl.setChessground(this.ground)
     }
 
     this.boardOnRemove = () => {
-      chessground.detach()
+      if (this.ground) this.ground.stop()
     }
 
     this.shapesCleared = false
@@ -71,11 +81,11 @@ export default {
   },
 
   view(vnode) {
-    const { variant, chessground, wrapperClasses, customPieceTheme, shapes, clearableShapes } = vnode.attrs
+    const { variant, wrapperClasses, customPieceTheme, shapes, clearableShapes } = vnode.attrs
 
     const boardClass = [
-      'display_board',
-      'orientation-' + chessground.state.orientation,
+      'cg-wrap',
+      'orientation-' + (this.ground?.state.orientation ?? 'white'),
       `board-${this.boardTheme}`,
       customPieceTheme || this.pieceTheme,
       `blindfold-${this.blindfoldChess}`,
@@ -110,7 +120,7 @@ export default {
       allShapes.length > 0 && this.bounds ?
         BoardBrush(
           this.bounds,
-          chessground.state.orientation,
+          this.ground.state.orientation,
           allShapes,
           this.pieceTheme
         ) : null

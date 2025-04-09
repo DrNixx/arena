@@ -5,8 +5,8 @@ import { parseFen } from 'chessops/fen'
 import { setupPosition } from 'chessops/variant'
 import router from '../../router'
 import { formatDateTime } from '../../i18n'
-import Chessground from '../../chessground/Chessground'
-import * as cg from '../../chessground/interfaces'
+import { Api as CgApi } from 'chessground/api';
+import { Config as CgConfig } from 'chessground/config'
 import * as chess from '../../chess'
 import { readCheckCount } from '../../utils/fen'
 import * as chessFormat from '../../utils/chessFormat'
@@ -39,7 +39,7 @@ import ExplorerCtrl from './explorer/ExplorerCtrl'
 import { IExplorerCtrl } from './explorer/interfaces'
 import analyseMenu, { IMainMenuCtrl } from './menu'
 import analyseSettings, { ISettingsCtrl } from './analyseSettings'
-import ground from './ground'
+import { makeConfig } from './ground'
 import socketHandler from './analyseSocketHandler'
 import { make as makeEvalCache, EvalCache } from './evalCache'
 import { Source } from './interfaces'
@@ -47,14 +47,14 @@ import * as tabs from './tabs'
 import StudyCtrl from './study/StudyCtrl'
 import ForecastCtrl from './forecast/ForecastCtrl'
 import { PromotingInterface } from '../shared/round'
+import { readDests } from '../../chess'
 
 export default class AnalyseCtrl implements PromotingInterface {
-
   settings: ISettingsCtrl
   menu: IMainMenuCtrl
   continuePopup: ContinuePopupController
   notes: NotesCtrl | null
-  chessground!: Chessground
+  chessground!: CgApi
   autoplay: Autoplay
   ceval: CevalCtrl
   retro: IRetroCtrl | null
@@ -86,7 +86,7 @@ export default class AnalyseCtrl implements PromotingInterface {
 
   // various view state flags
   replaying = false
-  cgConfig?: cg.SetConfig
+  cgConfig?: CgConfig
   analysisProgress = false
   retroGlowing = false
   showThreat = false
@@ -231,6 +231,32 @@ export default class AnalyseCtrl implements PromotingInterface {
 
     setTimeout(this.debouncedScroll, 250)
     setTimeout(this.initCeval, 1000)
+  }
+
+  setChessground(api: CgApi): void {
+    this.chessground = api
+  }
+
+  getGroundConfig(): CgConfig {
+    const node = this.node
+
+    if (this.data.game.variant.key === 'threeCheck' && !node.checkCount) {
+      node.checkCount = readCheckCount(node.fen)
+    }
+
+    const color: Color = util.plyColor(node.ply)
+    const dests = readDests(node.dests)
+    const config = {
+      fen: node.fen,
+      turnColor: color,
+      orientation: this.settings.s.flip ? oppositeColor(this.orientation) : this.orientation,
+      movableColor: this.gameOver() ? undefined : color,
+      dests: dests || undefined,
+      check: !!node.check,
+      lastMove: node.uci ? chessFormat.uciToMoveOrDrop(node.uci) : undefined
+    }
+
+    return makeConfig(config, this.orientation, this.userMove, this.userNewPiece);
   }
 
   canDrop = () => {
@@ -486,7 +512,7 @@ export default class AnalyseCtrl implements PromotingInterface {
   playUci = (uci: Uci): void => {
     const move = chessFormat.decomposeUci(uci)
     if (uci[1] === '@') {
-      this.chessground.apiNewPiece({
+      this.chessground.newPiece({
         color: this.chessground.state.movable.color as Color,
         role: chessFormat.sanToRole[uci[0]]
       }, move[1])
@@ -718,24 +744,11 @@ export default class AnalyseCtrl implements PromotingInterface {
       node.checkCount = readCheckCount(node.fen)
     }
 
-    const color: Color = util.plyColor(node.ply)
-    const dests = chessFormat.readDests(node.dests)
-    const config = {
-      fen: node.fen,
-      turnColor: color,
-      orientation: this.settings.s.flip ? oppositeColor(this.orientation) : this.orientation,
-      movableColor: this.gameOver() ? null : color,
-      dests: dests || null,
-      check: !!node.check,
-      lastMove: node.uci ? chessFormat.uciToMoveOrDrop(node.uci) : null
-    }
+    const dests = readDests(node.dests)
 
-    this.cgConfig = config
-    this.data.game.player = color
-    if (!this.chessground) {
-      this.chessground = ground.make(config, this.orientation, this.userMove, this.userNewPiece)
-    } else {
-      this.chessground.set(config)
+    this.cgConfig = this.getGroundConfig();
+    if (this.chessground) {
+      this.chessground.set(this.cgConfig)
     }
 
     if (!dests) this.getNodeSituation()

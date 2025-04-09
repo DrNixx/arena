@@ -17,7 +17,7 @@ interface Attrs {
 }
 
 interface State {
-  onTap: (e: TouchEvent) => void
+  onTap: (e: TouchEvent | MouseEvent) => void
 }
 
 interface TabDataSet extends DOMStringMap {
@@ -26,7 +26,7 @@ interface TabDataSet extends DOMStringMap {
 
 export default {
   oninit({ attrs }) {
-    this.onTap = (e: TouchEvent) => {
+    this.onTap = (e: TouchEvent | MouseEvent) => {
       const el = helper.getButton(e)
       let i
       if (el && (i = (el.dataset as TabDataSet).index)) {

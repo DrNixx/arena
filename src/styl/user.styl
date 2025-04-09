@@ -144,11 +144,11 @@ h3.fullname
   flex-flow row nowrap
   align-items center
   min-height 60px
-  > .display_board
+  > .cg-wrap
     margin-left 10px
     flex 0 0 30%
     height calc(100vw * 0.3)
-    > .cg-board
+    > cg-board
       position initial
   @media only screen and (orientation portrait) and (max-width 320px)
     .userGame-infos
@@ -157,15 +157,15 @@ h3.fullname
       > .variant-icon
         font-size 1.3em
   @media only screen and (orientation landscape)
-    > .display_board
+    > .cg-wrap
       flex 0 0 110px
       height 110px
   @media only screen and (orientation landscape) and (min-height 450px)
-    > .display_board
+    > .cg-wrap
       flex 0 0 150px
       height 150px
   @media only screen and (min-width 768px) and (min-height 768px)
-    > .display_board
+    > .cg-wrap
       flex 0 0 210px
       height 210px
     .userGame-meta
