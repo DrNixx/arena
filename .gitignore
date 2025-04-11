@@ -10,10 +10,11 @@ npm-debug.log
 /*.keystore
 /scripts/deploy-stage.sh
 
+/www/*.zip
 /www/*.js
 /www/*.js.map
+/www/*.wasm
 /www/index.html
-/www/frame.html
 /www/css/compiled
 /www/i18n/date
 

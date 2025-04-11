@@ -163,11 +163,6 @@ function renderLinks(user?: Session) {
           <span data-icon="-" />{i18n('puzzles')}
         </li> : null
       }
-      {online ?
-        <li className="side_link" data-route="/study">
-          <span data-icon="4" />{i18n('studyMenu')}
-        </li> : null
-      }
       <li className="side_link" data-route="/coord">
         <span className="fa fa-thumb-tack" />{i18n('coordinates')}
       </li>

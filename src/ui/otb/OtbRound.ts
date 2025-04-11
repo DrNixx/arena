@@ -100,6 +100,7 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
 
   setChessground(api: CgApi): void {
     this.chessground = api;
+    redraw();
   }
   
   getGroundConfig() {
@@ -140,7 +141,8 @@ export default class OtbRound implements OtbRoundInterface, PromotingInterface {
       this.clock = undefined
     }
 
-    ground.reload(this.chessground, this.data, this.replay.situation())
+    this.chessground?.set(this.getGroundConfig())
+    
     redraw()
   }
 

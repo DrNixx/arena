@@ -42,7 +42,7 @@ export default {
     let content: Mithril.Children, header: Mithril.Children
     const pieceTheme = settings.otb.useSymmetric() ? 'symmetric' : undefined
 
-    if (this.round && this.round.data && this.round.chessground) {
+    if (this.round && this.round.data) {
       header = renderHeader(h(GameTitle, { data: this.round.data }))
       content = renderContent(this.round, pieceTheme)
     } else {

@@ -94,6 +94,7 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
 
   setChessground(api: CgApi): void {
     this.chessground = api;
+    redraw();
   }
 
   getGroundConfig(): Config {
@@ -135,11 +136,11 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
       }
       this.engine = new Engine(this, variant)
       this.engine.init()
-      .then(() => {
-        if (this.isEngineToMove()) {
-          this.engineMove()
-        }
-      })
+        .then(() => {
+          if (this.isEngineToMove()) {
+            this.engineMove()
+          }
+        })
     }
 
     this.save()

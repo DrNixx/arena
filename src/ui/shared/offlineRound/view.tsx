@@ -43,7 +43,7 @@ export function renderAntagonist(
     position,
     isCrazy ? 'crazy' : '',
     otbFlip !== undefined ? otbFlip ? 'mode_flip' : 'mode_facing' : '',
-    ctrl.chessground.state.turnColor === ctrl.data.player.color ? 'player_turn' : 'opponent_turn',
+    ctrl.chessground?.state.turnColor === ctrl.data.player.color ? 'player_turn' : 'opponent_turn',
   ].join(' ')
 
   return (

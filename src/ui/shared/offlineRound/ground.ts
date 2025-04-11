@@ -9,7 +9,8 @@ import { uciToMoveOrDrop } from '../../../utils/chessFormat'
 import { GameSituation, readDests } from '../../../chess'
 
 function makeConfig(
-  data: OfflineGameData, sit: GameSituation,
+  data: OfflineGameData, 
+  sit: GameSituation,
   userMove: (orig: Key, dest: Key, meta: AfterMoveMeta) => void,
   userNewPiece: (role: Role, key: Key, meta: AfterMoveMeta) => void,
   onMove: (orig: Key, dest: Key, capturedPiece?: Piece) => void,
@@ -68,21 +69,11 @@ function makeConfig(
   return config;
 }
 
-function reload(_ground: CgApi, _data: OfflineGameData, _sit: GameSituation) {
-  // ground.set(makeConfig(data, sit))
-}
-
 function changeOTBMode(_ground: CgApi, _flip: boolean) {
   // ground.setOtbMode(flip ? 'flip' : 'facing')
 }
 
-function end(ground: CgApi) {
-  ground.stop()
-}
-
 export default {
   makeConfig,
-  reload,
-  end,
   changeOTBMode
 }

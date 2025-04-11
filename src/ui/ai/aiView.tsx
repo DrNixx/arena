@@ -15,7 +15,13 @@ import { getMaterialDiff } from '~/chess/material'
 
 export function renderContent(ctrl: AiRound) {
 
-  const material = getMaterialDiff(ctrl.chessground.state)
+  const material = ctrl.chessground ? 
+    getMaterialDiff(ctrl.chessground.state) : 
+    {
+      white: { pieces: {}, score: 0 },
+      black: { pieces: {}, score: 0 }
+    }
+    
   const isPortrait = helper.isPortrait()
   const vd = helper.viewportDim()
 
