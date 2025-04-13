@@ -1,4 +1,4 @@
-import asyncStorage from './asyncStorage'
+import storage from './storage'
 import redraw from './utils/redraw'
 
 const STORAGE_KEY = 'announce'
@@ -28,7 +28,7 @@ export function get(): Announcement | undefined {
 export async function set(a?: Announcement): Promise<void> {
   if (a) {
     const newKey = keyOf(a)
-    const existing = await asyncStorage.get<string[]>(STORAGE_KEY)
+    const existing = await storage.get<string[]>(STORAGE_KEY)
     if (existing?.includes(newKey)) {
       // previously dismissed, no-op
       return
@@ -49,10 +49,10 @@ export async function dismiss(): Promise<void> {
   redraw()
 
   // clean up existing dismissed cache and add this new entry
-  const existingDismissed = await asyncStorage.get<string[]>(STORAGE_KEY)
+  const existingDismissed = await storage.get<string[]>(STORAGE_KEY)
   const newDismissed = (existingDismissed || []).filter(dateStr => !isExpired(dateStr))
   newDismissed.push(dismissKey)
-  await asyncStorage.set(STORAGE_KEY, newDismissed)
+  await storage.set(STORAGE_KEY, newDismissed)
 
 }
 

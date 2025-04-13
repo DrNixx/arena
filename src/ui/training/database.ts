@@ -1,10 +1,10 @@
-import asyncStorage from '../../asyncStorage'
+import storage from '~/storage'
 import { PuzzleOutcome, PuzzleData, UserData } from '../../lichess/interfaces/training'
 
 const db = {
-  fetch,
-  save,
-  clean,
+    fetch,
+    save,
+    clean,
 }
 
 export default db
@@ -12,9 +12,9 @@ export default db
 export type Database = typeof db
 
 export interface UserOfflineData {
-  user: UserData
-  solved: ReadonlyArray<PuzzleOutcome>
-  unsolved: ReadonlyArray<PuzzleData>
+    user: UserData
+    solved: ReadonlyArray<PuzzleOutcome>
+    unsolved: ReadonlyArray<PuzzleData>
 }
 
 type UserId = string
@@ -22,13 +22,14 @@ type UserId = string
 const dbName = 'offlinePuzzlesV2'
 
 function fetch(userId: UserId): Promise<UserOfflineData | null> {
-  return asyncStorage.get<UserOfflineData>(`${dbName}.${userId}`)
+    return storage.get<UserOfflineData>(`${dbName}.${userId}`)
 }
 
 function save(userId: UserId, userData: UserOfflineData): Promise<UserOfflineData> {
-  return asyncStorage.set(`${dbName}.${userId}`, userData)
+    return storage.set(`${dbName}.${userId}`, userData)
+        .then(() => userData)
 }
 
 function clean(userId: UserId) {
-  return asyncStorage.remove(`${dbName}.${userId}`)
+    return storage.remove(`${dbName}.${userId}`)
 }

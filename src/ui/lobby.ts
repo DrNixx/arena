@@ -72,11 +72,18 @@ export default {
       const poolId = clock.initial / 60 + '+' + clock.increment
       doStartSeeking({ id: poolId })
     } else {
-      const setup = currentSetup && isSeekSetup(currentSetup) ? currentSetup :
-        storage.get<HumanSeekSetup>(SETUP_STORAGE_KEY) ||
-        humanSetupFromSettings(settings.gameSetup.human)
-
-      doStartSeeking(setup, data.game.id)
+      if (currentSetup && isSeekSetup(currentSetup)) {
+        doStartSeeking(currentSetup, data.game.id)  
+      } else {
+        storage.get<HumanSeekSetup>(SETUP_STORAGE_KEY)
+            .then(setup => {
+                if (setup) {
+                    doStartSeeking(setup, data.game.id)
+                } else {
+                    humanSetupFromSettings(settings.gameSetup.human)            
+                }
+            })
+      }
     }
   },
 

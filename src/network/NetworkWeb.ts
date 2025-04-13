@@ -95,7 +95,8 @@ export class NetworkWeb extends WebPlugin implements NetworkPlugin {
                 .then(() => {
                     return status;
                 })
-                .catch(() => {
+                .catch((_e) => {
+                    // console.log(e);
                     status.connected = false;
                     status.connectionType = 'none';
                     return status;

@@ -13,7 +13,6 @@ import friendsApi from "./lichess/friends";
 import { PrefValue } from "./lichess/prefs";
 import challengesApi from "./lichess/challenges";
 import storage from "./storage";
-import asyncStorage from "./asyncStorage";
 import announce, { Announcement } from "./announce";
 
 interface Prefs {
@@ -70,18 +69,18 @@ function getSession(): Session | undefined {
 
 // store session data for offline usage
 function storeSession(d: Session): void {
-    asyncStorage.set("session", d);
+    storage.set("session", d);
 }
 
 // clear session data stored in async storage and sessionId
 function onLogout(): void {
-    asyncStorage.remove("session");
+    storage.remove("session");
     storage.remove(SESSION_ID_KEY);
     signals.afterLogout.dispatch();
 }
 
 function restoreStoredSession(): void {
-    asyncStorage.get<Session>("session").then((d) => {
+    storage.get<Session>("session").then((d) => {
         session = d || undefined;
         if (d !== null) {
             signals.sessionRestored.dispatch();

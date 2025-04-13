@@ -1,7 +1,7 @@
-import asyncStorage from './asyncStorage'
 import { getAtPath, setAtPath } from './utils/object'
 import { ClockType } from './ui/shared/clock/interfaces'
 import { increments, incrementTuples } from './utils/increments'
+import storage from './storage'
 
 const STORAGE_KEY = 'settings'
 
@@ -32,8 +32,7 @@ const ratingRanges = [...Array(11).keys()].map(x => x * 50)
 const settingsStore = {}
 
 export async function init(): Promise<void> {
-  await asyncStorage.migrate()
-  const data = await asyncStorage.get(STORAGE_KEY)
+  const data = await storage.get(STORAGE_KEY)
   Object.assign(settingsStore, data)
 }
 
@@ -414,7 +413,7 @@ function prop<T>(key: string, initialValue: T): Prop<T> {
   return function(value?: T): T {
     if (value !== undefined) {
       setAtPath(settingsStore, key, value)
-      asyncStorage.set(STORAGE_KEY, settingsStore)
+      storage.set(STORAGE_KEY, settingsStore)
       .then(() => {
         console.debug(`${key}:${value} settings successfully persisted`)
       })

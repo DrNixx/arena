@@ -33,7 +33,7 @@ function addQuerystring(url: string, querystring: string): string {
 // lichess can return either json or text
 // for convenience, this wrapper returns a promise with the response body already
 // extracted
-function request<T>(url: string, type: 'json' | 'text', opts?: RequestOpts, feedback = false): Promise<T> {
+async function request<T>(url: string, type: 'json' | 'text', opts?: RequestOpts, feedback = false): Promise<T> {
 
   let timeoutId: number
 
@@ -47,7 +47,7 @@ function request<T>(url: string, type: 'json' | 'text', opts?: RequestOpts, feed
     'Accept': 'application/vnd.lichess.v' + globalConfig.apiVersion + '+json'
   })
 
-  const sid = storage.get<string>(SESSION_ID_KEY)
+  const sid = await storage.get<string>(SESSION_ID_KEY)
   if (sid !== null && sid !== undefined) {
     headers.append(SESSION_ID_KEY, sid)
   }

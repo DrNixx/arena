@@ -112,7 +112,7 @@ function renderUblog(entry: UblogPostTimelineEntry, users: LightUserMap) {
     key: `ublog-post${data.id}`,
     'data-external': `/@/${data.userId}/blog/${data.slug}/${data.id}`,
   }, [
-    userTitle(false, actor.patron ?? false, actor.id, actor.title),
+    userTitle(false, actor.patron ?? false, actor.name, actor.title),
     i18nVdom('xPublishedY', '', h('strong', data.title)),
     ' ',
     h('small', h('em', entry.fromNow)),
@@ -126,7 +126,7 @@ function renderUblogLike(entry: UblogLikeTimelineEntry, users: LightUserMap) {
     key: `ublog-post-like${data.id}`,
     'data-external': `/ublog/${data.id}/redirect`,
   }, [
-    userTitle(false, actor.patron ?? false, actor.id, actor.title),
+    userTitle(false, actor.patron ?? false, actor.name, actor.title),
     i18nVdom('xLikesY', '', h('strong', data.title)),
     ' ',
     h('small', h('em', entry.fromNow)),

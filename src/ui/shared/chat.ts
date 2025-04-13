@@ -5,12 +5,12 @@ import redraw from '../../utils/redraw'
 import LRUMap from '../../utils/lru'
 import { requestIdleCallback } from '../../utils'
 import i18n from '../../i18n'
-import asyncStorage from '../../asyncStorage'
 import { Player } from '../../lichess/interfaces/game'
 import { ChatMsg } from '../../lichess/interfaces/chat'
 import router from '../../router'
 import { SocketIFace } from '../../socket'
 import { closeIcon } from '../shared/icons'
+import storage from '~/storage'
 
 export type ChatStore = 'Corres' | 'Game' | 'Study' | 'Tournament'
 
@@ -187,155 +187,155 @@ export function chatView(ctrl: Chat, header?: string): Mithril.Children {
 }
 
 function renderPlayerMsg(player: Player, msg: ChatMsg, i: number, all: ChatMsg[]) {
-  const lichessTalking = msg.u === 'lichess'
-  const playerTalking = msg.c ? msg.c === player.color :
-    player.user && msg.u === player.user.username
+    const lichessTalking = msg.u === 'lichess'
+    const playerTalking = msg.c ? msg.c === player.color :
+        player.user && msg.u === player.user.username
 
-  let closeBalloon = true
-  const next = all[i + 1]
-  let nextTalking
-  if (next) {
-    nextTalking = next.c ? next.c === player.color :
-    player.user && next.u === player.user.username
-  }
-  if (nextTalking !== undefined) closeBalloon = nextTalking !== playerTalking
+    let closeBalloon = true
+    const next = all[i + 1]
+    let nextTalking
+    if (next) {
+        nextTalking = next.c ? next.c === player.color :
+        player.user && next.u === player.user.username
+    }
+    if (nextTalking !== undefined) closeBalloon = nextTalking !== playerTalking
 
-  return h('li.chat_msg.allow_select', {
-    className: helper.classSet({
-      system: lichessTalking,
-      player: !!playerTalking,
-      opponent: !lichessTalking && !playerTalking,
-      'close_balloon': closeBalloon
-    })
-  }, msg.t)
+    return h('li.chat_msg.allow_select', {
+        className: helper.classSet({
+            system: lichessTalking,
+            player: !!playerTalking,
+            opponent: !lichessTalking && !playerTalking,
+            'close_balloon': closeBalloon
+        })
+    }, msg.t)
 }
 
 function renderSpectatorMsg(msg: ChatMsg) {
-  const lichessTalking = msg.u === 'lichess'
+    const lichessTalking = msg.u === 'lichess'
 
-  return h('li.spectator_chat_msg.allow_select', {
-    className: helper.classSet({
-      system: lichessTalking,
-    })
-  }, lichessTalking ? msg.t : [
-    h('strong', msg.u),
-    h.trust('&nbsp;'), h.trust('&nbsp;'),
-    h('span', msg.t)
-  ])
+    return h('li.spectator_chat_msg.allow_select', {
+        className: helper.classSet({
+            system: lichessTalking,
+        })
+    }, lichessTalking ? msg.t : [
+        h('strong', msg.u),
+        h.trust('&nbsp;'), h.trust('&nbsp;'),
+        h('span', msg.t)
+    ])
 }
 
 function scrollCallback(ctrl: Chat, el: HTMLElement) {
-  if (ctrl.lines.length > 5) {
-    const autoScroll = (el.scrollTop === 0 || (el.scrollTop > (el.scrollHeight - el.clientHeight - 100)))
-    if (autoScroll) {
-      el.scrollTop = 999999
-      setTimeout(() => el.scrollTop = 999999, 300)
+    if (ctrl.lines.length > 5) {
+        const autoScroll = (el.scrollTop === 0 || (el.scrollTop > (el.scrollHeight - el.clientHeight - 100)))
+        if (autoScroll) {
+            el.scrollTop = 999999
+            setTimeout(() => el.scrollTop = 999999, 300)
+        }
     }
-  }
 }
 
 function calculateContentHeight(ta: HTMLElement, scanAmount: number): number {
-  const origHeight = ta.style.height,
-  scrollHeight = ta.scrollHeight,
-  overflow = ta.style.overflow
-  let height = ta.offsetHeight
-  /// only bother if the ta is bigger than content
-  if (height >= scrollHeight) {
-    /// check that our browser supports changing dimension
-    /// calculations mid-way through a function call...
-    ta.style.height = (height + scanAmount) + 'px'
-    /// because the scrollbar can cause calculation problems
-    ta.style.overflow = 'hidden'
-    /// by checking that scrollHeight has updated
-    if ( scrollHeight < ta.scrollHeight ) {
-      /// now try and scan the ta's height downwards
-      /// until scrollHeight becomes larger than height
-      while (ta.offsetHeight >= ta.scrollHeight) {
-        ta.style.height = (height -= scanAmount) + 'px'
-      }
-      /// be more specific to get the exact height
-      while (ta.offsetHeight < ta.scrollHeight) {
-        ta.style.height = (height++) + 'px'
-      }
-      /// reset the ta back to it's original height
-      ta.style.height = origHeight
-      /// put the overflow back
-      ta.style.overflow = overflow
-      return height
+    const origHeight = ta.style.height,
+    scrollHeight = ta.scrollHeight,
+    overflow = ta.style.overflow
+    let height = ta.offsetHeight
+    /// only bother if the ta is bigger than content
+    if (height >= scrollHeight) {
+        /// check that our browser supports changing dimension
+        /// calculations mid-way through a function call...
+        ta.style.height = (height + scanAmount) + 'px'
+        /// because the scrollbar can cause calculation problems
+        ta.style.overflow = 'hidden'
+        /// by checking that scrollHeight has updated
+        if ( scrollHeight < ta.scrollHeight ) {
+            /// now try and scan the ta's height downwards
+            /// until scrollHeight becomes larger than height
+            while (ta.offsetHeight >= ta.scrollHeight) {
+                ta.style.height = (height -= scanAmount) + 'px'
+            }
+            /// be more specific to get the exact height
+            while (ta.offsetHeight < ta.scrollHeight) {
+                ta.style.height = (height++) + 'px'
+            }
+            /// reset the ta back to it's original height
+            ta.style.height = origHeight
+            /// put the overflow back
+            ta.style.overflow = overflow
+            return height
+        }
     }
-  }
 
-  return scrollHeight
+    return scrollHeight
 }
 
 function isSpam(txt: string) {
-  return /chess-bot/.test(txt)
+    return /chess-bot/.test(txt)
 }
 
 function compactableDeletedLines(l1: ChatMsg, l2: ChatMsg) {
-  return l1.d && l2.d && l1.u === l2.u
+    return l1.d && l2.d && l1.u === l2.u
 }
 
 function validateMsg(msg: string): boolean {
-  if (!msg) return false
-  return msg.trim().length <= 140
+    if (!msg) return false
+    return msg.trim().length <= 140
 }
 
-interface Storage {
-  Corres: {
-    key: 'corresChat',
-    readCounts?: LRUMap<string, number>
-  },
-  Game: {
-    key: 'gameChat',
-    readCounts?: LRUMap<string, number>
-  },
-  Study: {
-    key: 'studyChat',
-    readCounts?: LRUMap<string, number>
-  },
-  Tournament: {
-    key: 'tourChat',
-    readCounts?: LRUMap<string, number>
-  },
+interface ChatStorage {
+    Corres: {
+        key: 'corresChat',
+        readCounts?: LRUMap<string, number>
+    },
+    Game: {
+        key: 'gameChat',
+        readCounts?: LRUMap<string, number>
+    },
+    Study: {
+        key: 'studyChat',
+        readCounts?: LRUMap<string, number>
+    },
+    Tournament: {
+        key: 'tourChat',
+        readCounts?: LRUMap<string, number>
+    },
 }
-const storage: Storage = {
-  Corres: {
-    key: 'corresChat',
-  },
-  Game: {
-    key: 'gameChat',
-  },
-  Study: {
-    key: 'studyChat',
-  },
-  Tournament: {
-    key: 'tourChat',
-  },
+const chatStorage: ChatStorage = {
+    Corres: {
+        key: 'corresChat',
+    },
+    Game: {
+        key: 'gameChat',
+    },
+    Study: {
+        key: 'studyChat',
+    },
+    Tournament: {
+        key: 'tourChat',
+    },
 }
 
 function initStorage(storeKey: ChatStore): Promise<void> {
-  const store = storage[storeKey]
-  if (store.readCounts) return Promise.resolve()
-  else {
-    return asyncStorage.get<Array<[string, number]>>(store.key)
-    .then(data => {
-      if (data) store.readCounts = new LRUMap<string, number>(100, data)
-      else store.readCounts = new LRUMap<string, number>(100)
-    })
-  }
+    const store = chatStorage[storeKey]
+    if (store.readCounts) return Promise.resolve()
+    else {
+        return storage.get<Array<[string, number]>>(store.key)
+        .then(data => {
+            if (data) store.readCounts = new LRUMap<string, number>(100, data)
+            else store.readCounts = new LRUMap<string, number>(100)
+        })
+    }
 }
 
 async function getReadCount(storeKey: ChatStore, id: string): Promise<number | undefined> {
-  await initStorage(storeKey)
-  return storage[storeKey].readCounts?.get(id)
+    await initStorage(storeKey)
+    return chatStorage[storeKey].readCounts?.get(id)
 }
 
 async function setReadCount(storeKey: ChatStore, id: string, nb: number): Promise<void> {
-  await initStorage(storeKey)
-  const store = storage[storeKey]
-  if (store.readCounts) {
-    store.readCounts.set(id, nb)
-    asyncStorage.set(store.key, store.readCounts.toJSON())
-  }
+    await initStorage(storeKey)
+    const store = chatStorage[storeKey]
+    if (store.readCounts) {
+        store.readCounts.set(id, nb)
+        storage.set(store.key, store.readCounts.toJSON())
+    }
 }

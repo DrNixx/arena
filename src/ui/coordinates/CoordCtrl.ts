@@ -1,6 +1,6 @@
 import { INITIAL_FEN } from 'chessops/fen'
 import { Api as CgApi } from 'chessground/api';
-import asyncStorage from '~/asyncStorage'
+import storage from '~/storage'
 import settings from '~/settings'
 import { randomColor } from '~/utils'
 import redraw from '~/utils/redraw'
@@ -37,15 +37,14 @@ export default class CoordCtrl implements BoardInterface {
   started = false
 
   constructor() {
-    this.orientation = this.getOrientation(settings.coordinates.colorChoice())
-
-    asyncStorage.get<SavedScores>(storeKey)
-    .then(saved => {
-      if (saved) {
-        this.averageScores = getAverage(saved)
-        redraw()
-      }
-    })
+        this.orientation = this.getOrientation(settings.coordinates.colorChoice())
+        storage.get<SavedScores>(storeKey)
+            .then(saved => {
+                if (saved) {
+                    this.averageScores = getAverage(saved)
+                    redraw()
+                }
+            })
   }
 
   setChessground(api: CgApi): void {
@@ -155,19 +154,19 @@ export default class CoordCtrl implements BoardInterface {
   }
 
   private saveScore(): Promise<SavedScores> {
-    return asyncStorage.get<SavedScores>(storeKey)
-    .then(saved => {
-      saved = saved || {}
-      const scores = saved[this.orientation] || []
-      if (scores.length >= storeMaxScores) {
-        scores.shift()
-      }
-      scores.push(this.score)
-      saved[this.orientation] = scores
-      return saved
-    })
-    .then(newState => asyncStorage.set(storeKey, newState))
-  }
+    return storage.get<SavedScores>(storeKey)
+        .then((saved) => {
+            saved = saved || {}
+            const scores = saved[this.orientation] || []
+            if (scores.length >= storeMaxScores) {
+                scores.shift()
+            }
+            scores.push(this.score)
+            saved[this.orientation] = scores
+            return saved
+        })
+        .then((newState) => storage.set(storeKey, newState));
+    }
 }
 
 function getAverage(s: SavedScores): AverageScores {

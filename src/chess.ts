@@ -2,7 +2,6 @@ import * as cg from 'chessground/types';
 import { askWorker } from './utils/worker'
 import { GameStatus, CheckCount, Pockets } from './lichess/interfaces/game'
 import { VariantKey, Variant } from './lichess/interfaces/variant'
-import { uciChar } from './chess/uciChar';
 
 const worker = new Worker('vendor/scalachess.js')
 
@@ -17,13 +16,7 @@ export const destsToUcis = (destMap: cg.Dests): Uci[] =>
 export const readDestsFromString = (lines?: string): cg.Dests | undefined =>
   lines
     ? lines.split(' ').reduce<cg.Dests>((dests, line) => {
-        dests.set(
-          uciChar[line[0]],
-          line
-            .slice(1)
-            .split('')
-            .map(c => uciChar[c]),
-        );
+      dests.set(line.slice(0, 2) as Key, line.slice(2).match(/.{2}/g) as Key[]);
         return dests;
       }, new Map())
     : undefined;

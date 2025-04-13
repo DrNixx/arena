@@ -211,7 +211,12 @@ function renderHeader(ctrl: OnlineRound) {
 function renderContent(ctrl: OnlineRound, isPortrait: boolean) {
   const vd = helper.viewportDim()
 
-  const material = getMaterialDiff(ctrl.chessground.state)
+  const material = ctrl.chessground ? 
+    getMaterialDiff(ctrl.chessground.state) : 
+    {
+      white: { pieces: {}, score: 0 },
+      black: { pieces: {}, score: 0 }
+    }
 
   const checksCount = ctrl.data.player.checks || ctrl.data.opponent.checks ?
     countChecks(ctrl.data.steps, ctrl.vm.ply) : NO_CHECKS

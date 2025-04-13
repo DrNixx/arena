@@ -68,48 +68,50 @@ function handleFollowingOnline(data: string[], payload: FollowingOnlinePayload) 
 }
 
 function setupConnection(setup: SocketSetup, socketHandlers: SocketHandlers) {
-  const sid = storage.get<string>(SESSION_ID_KEY)
-  if (sid !== null) {
-    if (setup.opts.params) {
-      setup.opts.params[SESSION_ID_KEY] = sid
-    } else {
-      setup.opts.params = {
-        [SESSION_ID_KEY]: sid
-      }
-    }
-  } else if (setup.opts.params) {
-    delete setup.opts.params.sessionId
-  }
-  setup.opts.options.isAuth = !!sid
-  worker.onmessage = (msg: MessageEvent) => {
-    switch (msg.data.topic) {
-      case 'onOpen':
-        if (socketHandlers.onOpen) socketHandlers.onOpen()
-        break
-      case 'disconnected':
-        onDisconnected()
-        break
-      case 'connected':
-        onConnected()
-        break
-      case 'onError':
-        if (socketHandlers.onError) socketHandlers.onError()
-        break
-      case 'resync':
-        router.reload()
-        break
-      case 'handle': {
-        const h = socketHandlers.events[msg.data.payload.t]
-        if (h) h(msg.data.payload.d, msg.data.payload)
-        break
-      }
-      case 'pingInterval':
-        currentPingInterval = msg.data.payload
-        break
-    }
-  }
-  currentSetup = { setup, handlers: socketHandlers }
-  tellWorker(worker, 'create', setup)
+  storage.get<string>(SESSION_ID_KEY)
+    .then((sid) => {
+        if (sid !== null) {
+            if (setup.opts.params) {
+              setup.opts.params[SESSION_ID_KEY] = sid
+            } else {
+              setup.opts.params = {
+                [SESSION_ID_KEY]: sid
+              }
+            }
+          } else if (setup.opts.params) {
+            delete setup.opts.params.sessionId
+          }
+          setup.opts.options.isAuth = !!sid
+          worker.onmessage = (msg: MessageEvent) => {
+            switch (msg.data.topic) {
+              case 'onOpen':
+                if (socketHandlers.onOpen) socketHandlers.onOpen()
+                break
+              case 'disconnected':
+                onDisconnected()
+                break
+              case 'connected':
+                onConnected()
+                break
+              case 'onError':
+                if (socketHandlers.onError) socketHandlers.onError()
+                break
+              case 'resync':
+                router.reload()
+                break
+              case 'handle': {
+                const h = socketHandlers.events[msg.data.payload.t]
+                if (h) h(msg.data.payload.d, msg.data.payload)
+                break
+              }
+              case 'pingInterval':
+                currentPingInterval = msg.data.payload
+                break
+            }
+          }
+          currentSetup = { setup, handlers: socketHandlers }
+          tellWorker(worker, 'create', setup)
+    });  
 }
 
 function send<D, O>(url: string , t: string, data?: D, opts?: O): void {

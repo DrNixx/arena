@@ -78,6 +78,7 @@ export default function appInit(
 }
 
 function onResize() {
+  console.log('resize')
   helper.clearCachedViewportDim()
   redraw()
 }

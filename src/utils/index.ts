@@ -101,9 +101,11 @@ Network.addListener('networkStatusChange', st => {
   networkStatus = st
 })
 
-Network.getStatus().then(st => {
-  networkStatus = st
-})
+export function initNetwork() {
+  return Network.getStatus().then(st => {
+    networkStatus = st
+  })
+}
 
 export function hasNetwork(): boolean {
   return networkStatus.connected

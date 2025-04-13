@@ -11,9 +11,17 @@ import { processWindowLocation } from './router';
 
 import deepLinks from './deepLinks';
 import globalConfig from './config';
-import { setSdk } from './sdk';
+import { setSdk, getSdk } from './sdk';
+import redraw from './utils/redraw';
+import { initNetwork } from './utils';
 
-settingsInit()
+YaGames.init()
+    .then((ysdk) => {
+        console.log('Yandex SDK initialized');
+        setSdk(ysdk);
+    })
+    .then(() => initNetwork())
+    .then(() => settingsInit())
     .then(() => App.getInfo().catch(() => ({ version: globalConfig.packageVersion })))
     .then((ai) => appInit(ai))
     .then(() => {
@@ -28,10 +36,9 @@ settingsInit()
             SplashScreen.hide();
         }, 500)
     })
-    .then(() => YaGames.init())
-    .then((ysdk) => {
-        console.log('Yandex SDK initialized');
+    .then(() => {
+        const ysdk = getSdk();
         ysdk.features.LoadingAPI?.ready();
-        setSdk(ysdk);
+        redraw();
     })
     .catch((e) => console.error(e));

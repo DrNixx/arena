@@ -172,6 +172,7 @@ export default class AiRound implements AiRoundInterface, PromotingInterface {
         this.vm.setupFen = undefined
         router.History.replaceState(undefined, '/ai')
       }
+      this.chessground.set(this.getGroundConfig())
     })
   }
 
