@@ -1,5 +1,5 @@
 {
   "apiEndPoint": "https://live.chess-online.com",
   "socketEndPoint": "wss://live.chess-online.com",
-  "sdkUrl": "https://sdk.games.s3.yandex.net/sdk.js"
+  "sdkUrl": "https://telegram.org/js/telegram-web-app.js?57"
 }

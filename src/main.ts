@@ -11,16 +11,11 @@ import { processWindowLocation } from './router';
 
 import deepLinks from './deepLinks';
 import globalConfig from './config';
-import { setSdk, getSdk } from './sdk';
 import redraw from './utils/redraw';
 import { initNetwork } from './utils';
 
-YaGames.init()
-    .then((ysdk) => {
-        console.log('Yandex SDK initialized');
-        setSdk(ysdk);
-    })
-    .then(() => initNetwork())
+//window.Telegram.WebApp.
+initNetwork()
     .then(() => settingsInit())
     .then(() => App.getInfo().catch(() => ({ version: globalConfig.packageVersion })))
     .then((ai) => appInit(ai))
@@ -37,8 +32,6 @@ YaGames.init()
         }, 500)
     })
     .then(() => {
-        const ysdk = getSdk();
-        ysdk.features.LoadingAPI?.ready();
         redraw();
     })
     .catch((e) => console.error(e));

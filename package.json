@@ -68,7 +68,6 @@
     "@capacitor/toast": "^7.0.0",
     "@types/d3": "7.4.3",
     "@types/lodash-es": "4.17.3",
-    "@types/ysdk": "1.0.8",
     "chessground": "9.1.1",
     "chessops": "0.10.3",
     "d3-axis": "3.0.0",

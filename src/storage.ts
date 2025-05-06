@@ -1,34 +1,43 @@
-import { getSdk } from './sdk';
-
 export default {
-  get,
-  set,
-  remove,
+    get,
+    set,
+    remove,
 }
-
-function get<T>(k: string): Promise<T | null> {
-  return getSdk()
-    .getStorage()
-      .then((storage) => { 
-        const item = storage.getItem(k);
-        return item ? JSON.parse(item) as T : null
-      })
-      .catch(() => null)
+  
+const storage = Telegram.WebApp.DeviceStorage;
+  
+function get<T>(key: string): Promise<T | null> {
+    return new Promise((resolve, reject) => {
+      storage.getItem(key, (error, value) => {
+          if (error !== null) {
+              reject(new Error(error));
+          } else {
+              resolve(value ? JSON.parse(value) : null);
+          }
+      });
+    });
 }
-
-function remove(k: string): Promise<void> {
-  return getSdk()
-    .getStorage()
-        .then((storage) => { 
-            storage.removeItem(k);
-        });
+  
+function remove(key: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      storage.removeItem(key, (error) => {
+          if (error) {
+              reject(new Error(error));
+          } else {
+              resolve();
+          }
+      });
+    });
 }
-
-function set<T>(k: string, v: T): Promise<T> {
-    return getSdk()
-        .getStorage()
-            .then((storage) => { 
-                storage.setItem(k, JSON.stringify(v));
-                return v;
-            });
+  
+function set<T>(key: string, v: T): Promise<T> {
+    return new Promise((resolve, reject) => {
+      storage.setItem(key, JSON.stringify(v), (error) => {
+          if (error) {
+              reject(new Error(error));
+          } else {
+              resolve(v);
+          }
+      });
+    });
 }
