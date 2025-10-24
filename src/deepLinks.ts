@@ -1,9 +1,6 @@
 import { App } from '@capacitor/app'
 import Rlite from 'rlite-router'
 import router from './router'
-import session, { Session } from './session'
-import signupModal from './ui/signupModal'
-import { handleXhrError } from './utils'
 import { buildQueryString } from './utils/querystring'
 
 const fenParams = ':r1/:r2/:r3/:r4/:r5/:r6/:r7/:r8'
@@ -77,14 +74,4 @@ links.add('@/:id', ({ params }) => router.set(`/@/${params.id}`))
 links.add('@/:id/tv', ({ params }) => router.set(`/@/${params.id}/tv`))
 links.add('@/:id/all', ({ params }) => router.set(`/@/${params.id}/games`))
 links.add('@/:id/perf/:key', ({ params }) => router.set(`/@/${params.id}/${params.key}/perf`))
-links.add('signup/confirm/:token', ({ params }) => {
-  const token = params.token
-  if (token) {
-    session.confirmEmail(token)
-    .then((data: Session) => {
-      signupModal.close()
-      router.set(`/@/${data.id}`)
-    })
-    .catch(handleXhrError)
-  }
-})
+

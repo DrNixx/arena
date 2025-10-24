@@ -5,7 +5,7 @@ import { currentSri } from './utils'
 import storage from './storage'
 import settings from './settings'
 import i18n, { formatDate } from './i18n'
-import session from './session'
+import session, { Session } from './session'
 import { TimelineData, LobbyData, HookData, Pool, HumanSeekSetup, CorrespondenceSeek, ApiStatus } from './lichess/interfaces'
 import { ChallengeData, ChallengesData, Challenge } from './lichess/interfaces/challenge'
 import { OnlineGameData } from './lichess/interfaces/game'
@@ -169,8 +169,12 @@ export function miniUser(userId: string): Promise<MiniUser> {
   return fetchJSON(`/@/${userId}/mini`)
 }
 
-export function timeline(): Promise<TimelineData> {
-  return fetchJSON('/timeline', {query: {nb: 10}}, false)
+export function timeline(user?: Session): Promise<TimelineData> {
+  if (user) {
+    return fetchJSON('/timeline', {query: {nb: 10}}, false)
+  } else {
+    return Promise.resolve({entries: [], users: {}});
+  }
 }
 
 export function status(): Promise<void> {

@@ -7,13 +7,15 @@ import { hasNetwork, handleXhrError, serializeQueryParameters } from "./utils";
 import { getAtPath, setAtPath, pick } from "./utils/object";
 import i18n from "./i18n";
 import settings, { Prop } from "./settings";
-import { TempBan, LobbyData, NowPlayingGame } from "./lichess/interfaces";
+import { TempBan, NowPlayingGame } from "./lichess/interfaces";
 import { PlayTime, Perfs } from "./lichess/interfaces/user";
 import friendsApi from "./lichess/friends";
 import { PrefValue } from "./lichess/prefs";
 import challengesApi from "./lichess/challenges";
 import storage from "./storage";
 import announce, { Announcement } from "./announce";
+import { getSdk } from "./sdk";
+import { Player } from "ysdk";
 
 interface Prefs {
     [key: string]: PrefValue;
@@ -225,15 +227,47 @@ function lichessBackedProp<T extends PrefValue>(
     };
 }
 
+/*
 function isSession(data: Session | LobbyData | SignupData): data is Session {
     return (<Session>data).id !== undefined;
 }
+*/
+
+let player: Player;
+
+function initPlayer() {
+    const ysdk = getSdk();
+    return ysdk.getPlayer().then(_player => {
+        player = _player;
+        return player;
+    });
+}
 
 function login(
-    username: string,
-    password: string,
-    token: string | null
-): Promise<Session> {
+    _username: string,
+    _password: string,
+    _token: string | null
+): Promise<void> {
+    return initPlayer()
+        .then(_player => {
+            if (_player.getMode() === 'lite') {
+                // Игрок не авторизован.
+                const ysdk = getSdk();
+                ysdk.auth.openAuthDialog()
+                    .then(() => {
+                        // Игрок успешно авторизован.
+                        initPlayer().catch(err => {
+                            console.error(err);
+                        });
+                    }).catch(() => {
+                        console.error('Not authorized');
+                    });
+            }
+        }).catch(err => {
+            console.error(err);
+        });
+
+    /*
     return fetchJSON<Session | LobbyData>(
         "/login",
         {
@@ -257,6 +291,7 @@ function login(
                 throw { ipban: true };
             }
         });
+    */
 }
 
 function logout(): Promise<void> {
@@ -281,10 +316,18 @@ function confirmEmail(token: string): Promise<Session> {
 }
 
 function signup(
-    username: string,
-    email: string,
-    password: string
-): Promise<SignupData> {
+    _username: string,
+    _email: string,
+    _password: string
+): Promise<void> {
+    const ysdk = getSdk();
+    return ysdk.getPlayer().then(_player => {
+        console.log(_player);
+    }).catch(err => {
+        console.error(err);
+    });
+
+    /*
     return fetchJSON<SignupData>(
         "/signup",
         {
@@ -307,6 +350,7 @@ function signup(
 
         return d;
     });
+    */
 }
 
 function rememberLogin(): Promise<Session> {

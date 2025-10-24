@@ -3,6 +3,7 @@ import { Toast } from '@capacitor/toast'
 import { PluginListenerHandle } from '@capacitor/core'
 import { Api as CgApi } from 'chessground/api';
 import * as cg from 'chessground/types'
+import { Config as CgConfig } from 'chessground/config'
 import redraw from '../../../utils/redraw'
 import { hasNetwork, boardOrientation, handleXhrError } from '../../../utils'
 import signals from '../../../signals'
@@ -470,11 +471,14 @@ export default class OnlineRound implements OnlineRoundInterface {
     d.possibleDrops = activeColor ? o.drops : undefined
 
     if (!this.replaying()) {
-      this.vm.ply++
-      const newConf = {
+      this.vm.ply++;
+      const dests = playing ? gameApi.parsePossibleMoves(d.possibleMoves) : undefined;
+      const newConf: Partial<CgConfig> = {
         turnColor: d.game.player,
-        dests: playing ? gameApi.parsePossibleMoves(d.possibleMoves) : undefined,
-        check: !!o.check
+        check: !!o.check,
+        movable: {
+          dests: dests
+        },
       }
 
       if (isMove(o)) {
@@ -559,6 +563,7 @@ export default class OnlineRound implements OnlineRoundInterface {
       check: o.check,
       crazy: o.crazyhouse
     })
+
     gameApi.setOnGame(d, playedColor, true)
 
     if (this.data.expiration) {

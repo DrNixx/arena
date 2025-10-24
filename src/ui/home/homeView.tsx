@@ -1,7 +1,6 @@
 import h from 'mithril/hyperscript'
 import router from '../../router'
 import socket from '../../socket'
-import { openExternalBrowser } from '../../utils/browse'
 import { emptyFen } from '../../utils/fen'
 import { gameIcon, hasNetwork } from '../../utils'
 import i18n, { plural, formatNumber, distanceToNowStrict } from '../../i18n'
@@ -66,7 +65,6 @@ function online(ctrl: HomeCtrl) {
       }
       {renderStart(ctrl)}
       <div className="home__side">
-        {renderFeaturedStreamers(ctrl)}
         {renderFeaturedTournaments(ctrl)}
         {renderTimeline(ctrl)}
       </div>
@@ -252,20 +250,6 @@ function renderFeaturedTournaments(ctrl: HomeCtrl) {
         {renderTournamentList(ctrl.featuredTournaments)}
       </div>
     )
-  else
-    return null
-}
-
-function renderFeaturedStreamers(ctrl: HomeCtrl) {
-  if (ctrl.featuredStreamers?.length)
-    return h('ul.home__streamers', ctrl.featuredStreamers.map(s =>
-      h('li.home__streamer', {
-        oncreate: helper.ontapY(() => openExternalBrowser(s.url)),
-      }, [
-        h('strong[data-icon=]', (s.user.title ? s.user.title + ' ' : '') + s.user.name),
-        h('span.status', ' ' + s.status),
-      ])
-    ))
   else
     return null
 }

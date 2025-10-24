@@ -1,4 +1,3 @@
-import { Keyboard } from '@capacitor/keyboard'
 import { Toast } from '@capacitor/toast'
 import h from 'mithril/hyperscript'
 import debounce from 'lodash-es/debounce'
@@ -56,7 +55,6 @@ export class NotesCtrl {
   }
 
   public close = (fromBB?: string) => {
-    Keyboard.hide()
     if (fromBB !== 'backbutton' && this.showing) {
       router.backbutton.stack.pop()
     }

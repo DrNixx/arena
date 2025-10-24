@@ -1,4 +1,3 @@
-import { Keyboard } from '@capacitor/keyboard'
 import h from 'mithril/hyperscript'
 import session from '../session'
 import { ErrorResponse } from '../http'
@@ -11,7 +10,6 @@ import * as helper from './helper'
 import i18n from '../i18n'
 import router from '../router'
 import { closeIcon } from './shared/icons'
-import signupModal from './signupModal'
 
 let isOpen = false
 let loading = false
@@ -75,15 +73,7 @@ export default {
               disabled: loading
             }, i18n('signIn'))
           ])
-        ]),
-        h('div.loginActions', [
-          h('a', {
-            oncreate: helper.ontap(signupModal.open)
-          }, [i18n('signUp')]),
-          h('a', {
-            href: 'https://live.chess-online.com/password/reset'
-          }, [i18n('passwordReset')])
-        ]),
+        ])
       ])
     ])
   }
@@ -98,7 +88,6 @@ function onLogin(e: Event) {
   const token = form['token'] ? form['token'].value : null
   if (!username || !password) return
   redraw()
-  Keyboard.hide()
   loading = true
   session.login(username, password, token)
   .then(() => {
@@ -139,7 +128,6 @@ function open() {
 }
 
 function close(fromBB?: string) {
-  Keyboard.hide()
   if (fromBB !== 'backbutton' && isOpen) router.backbutton.stack.pop()
   isOpen = false
 }

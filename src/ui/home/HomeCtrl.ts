@@ -12,7 +12,7 @@ import { timeline as timelineXhr, seeks as corresSeeksXhr, lobby as lobbyXhr, fe
 import { hasNetwork, noop } from '../../utils'
 import { fromNow } from '../../i18n'
 import { isForeground } from '../../utils/appMode'
-import { Streamer, PongMessage, TimelineEntry, CorrespondenceSeek, FeaturedGame2, FeaturedPlayer, TimelineData } from '../../lichess/interfaces'
+import { PongMessage, TimelineEntry, CorrespondenceSeek, FeaturedGame2, FeaturedPlayer, TimelineData } from '../../lichess/interfaces'
 import { Player } from '../../lichess/interfaces/game'
 import { TournamentListItem } from '../../lichess/interfaces/tournament'
 import { PuzzleData } from '../../lichess/interfaces/training'
@@ -21,7 +21,7 @@ import { supportedTypes as supportedTimelineTypes } from '../timeline'
 import offlinePuzzleDB from '../training/database'
 import { loadNewPuzzle } from '../training/offlineService'
 
-import { dailyPuzzle as dailyPuzzleXhr, featuredTournaments as featuredTournamentsXhr, featuredStreamers as featuredStreamersXhr } from './homeXhr'
+import { dailyPuzzle as dailyPuzzleXhr, featuredTournaments as featuredTournamentsXhr } from './homeXhr'
 
 interface FeaturedFenData {
   bc: number
@@ -47,7 +47,6 @@ export default class HomeCtrl {
   public dailyPuzzle?: PuzzleData
   public featuredGame?: FeaturedGame2
   public featuredTournaments?: readonly TournamentListItem[]
-  public featuredStreamers?: readonly Streamer[]
   public timelineData?: TimelineData
   public offlinePuzzle?: PuzzleData | undefined
 
@@ -133,14 +132,9 @@ export default class HomeCtrl {
         },
       })
 
-      Promise.all([
-        featuredTournamentsXhr(),
-        session.refresh().then(() => session.isKidMode() ? Promise.resolve([]) : featuredStreamersXhr()),
-      ])
-        .then(results => {
-          const [fTour, fStreamers] = results
+      featuredTournamentsXhr()
+        .then((fTour) => {  
           this.featuredTournaments = fTour.featured
-          this.featuredStreamers = fStreamers
           redraw()
         })
         .catch(noop)
@@ -151,7 +145,7 @@ export default class HomeCtrl {
           redraw()
         })
 
-      timelineXhr()
+      timelineXhr(session.get())
         .then((timeline) => {
           this.timelineData = {
             users: timeline.users,
