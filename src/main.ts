@@ -11,9 +11,10 @@ import { processWindowLocation } from './router';
 
 import deepLinks from './deepLinks';
 import globalConfig from './config';
-import { setSdk, getSdk } from './sdk';
+import { setSdk } from './sdk';
 import redraw from './utils/redraw';
 import { initNetwork } from './utils';
+import session from './session';
 
 YaGames.init()
     .then((ysdk) => {
@@ -37,8 +38,6 @@ YaGames.init()
         }, 500)
     })
     .then(() => {
-        const ysdk = getSdk();
-        ysdk.features.LoadingAPI?.ready();
-        redraw();
+        session.autologin().then(() => redraw());
     })
     .catch((e) => console.error(e));

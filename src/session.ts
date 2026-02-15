@@ -2,12 +2,12 @@ import { Toast } from "@capacitor/toast";
 import throttle from "lodash-es/throttle";
 import redraw from "./utils/redraw";
 import signals from "./signals";
-import { SESSION_ID_KEY, fetchJSON, fetchText } from "./http";
+import { ErrorResponse, SESSION_ID_KEY, fetchJSON, fetchText } from "./http";
 import { hasNetwork, handleXhrError, serializeQueryParameters } from "./utils";
 import { getAtPath, setAtPath, pick } from "./utils/object";
 import i18n from "./i18n";
 import settings, { Prop } from "./settings";
-import { TempBan, NowPlayingGame } from "./lichess/interfaces";
+import { TempBan, LobbyData, NowPlayingGame } from "./lichess/interfaces";
 import { PlayTime, Perfs } from "./lichess/interfaces/user";
 import friendsApi from "./lichess/friends";
 import { PrefValue } from "./lichess/prefs";
@@ -227,138 +227,96 @@ function lichessBackedProp<T extends PrefValue>(
     };
 }
 
-/*
 function isSession(data: Session | LobbyData | SignupData): data is Session {
     return (<Session>data).id !== undefined;
 }
-*/
 
-let player: Player;
+let playerInstance: Player;
 
-function initPlayer() {
+async function initPlayer(force = false) {
+    if (playerInstance && !force) {
+        return playerInstance;
+    }
+    
     const ysdk = getSdk();
-    return ysdk.getPlayer().then(_player => {
-        player = _player;
-        return player;
-    });
+    playerInstance = await ysdk.getPlayer();
+    return playerInstance;
 }
 
-function login(
-    _username: string,
-    _password: string,
-    _token: string | null
-): Promise<void> {
-    return initPlayer()
-        .then(_player => {
-            if (_player.getMode() === 'lite') {
-                // Игрок не авторизован.
-                const ysdk = getSdk();
-                ysdk.auth.openAuthDialog()
-                    .then(() => {
-                        // Игрок успешно авторизован.
-                        initPlayer().catch(err => {
-                            console.error(err);
-                        });
-                    }).catch(() => {
-                        console.error('Not authorized');
-                    });
-            }
-        }).catch(err => {
-            console.error(err);
-        });
-
-    /*
-    return fetchJSON<Session | LobbyData>(
-        "/login",
-        {
-            method: "POST",
-            body: JSON.stringify({
-                username,
-                password,
-                token,
-            }),
-        },
-        true
-    ).then((data) => {
-        if (isSession(data)) {
-            session = data;
-            if (session.sessionId) {
-                storage.set(SESSION_ID_KEY, session.sessionId);
-            }
-            storeSession(data);
-            return session;
+async function loginInternal(): Promise<Session> {
+    const ysdk = getSdk();
+    const signatured = await ysdk.getPlayer({ signed: true });
+    const signature = encodeURIComponent(signatured.signature);
+    return fetchJSON<Session | LobbyData>(`/login?signature=${signature}&provider=yandex-game`, {method: "GET"},true)
+        .then((data) => {
+            if (isSession(data)) {
+                session = data;
+                if (session.sessionId) {
+                    storage.set(SESSION_ID_KEY, session.sessionId);
+                }
+                storeSession(data);
+                return session;
             } else {
                 throw { ipban: true };
             }
         });
-    */
 }
 
-function logout(): Promise<void> {
-  return fetchJSON("/logout", { method: "POST" }, true)
-    .then(() => {
+async function autologin() {
+    const player = await initPlayer();
+    if (player.isAuthorized()) {
+        await loginInternal();
+    }
+}
+
+async function login(): Promise<boolean> {
+    // Initialize the player
+    const player = await initPlayer();
+
+    // Check if player is authorized in YSDK
+    if (!player.isAuthorized()) {
+        try {
+            // Player is not authorized, call authorization dialog
+            const ysdk = getSdk();
+            await ysdk.auth.openAuthDialog();
+
+            // Re-initialize player after successful authorization
+            await initPlayer(true);
+        } catch (err) {
+            // Authorization was not successful, abort the process
+            console.warn('Authorization failed:', err);
+            return false;
+        }
+    }
+
+    // Call loginInternal to authenticate on the server
+    return !!(await loginInternal());
+}
+
+async function logout() {
+  try {
+        await fetchJSON("/logout", { method: "POST" }, true);
         session = undefined;
         onLogout();
         friendsApi.clear();
         redraw();
-    })
-    .catch(handleXhrError);
+    } catch (error) {
+        return handleXhrError(error as ErrorResponse);
+    }
 }
 
-function confirmEmail(token: string): Promise<Session> {
-    return fetchJSON<Session>(`/signup/confirm/${token}`, undefined, true).then(
-        (data) => {
-            session = data;
-            storeSession(data);
-            return session;
-        }
-    );
+async function confirmEmail(token: string): Promise<Session> {
+    const data = await fetchJSON<Session>(`/signup/confirm/${token}`, undefined, true);
+    session = data;
+    storeSession(data);
+    return session;
 }
 
-function signup(
-    _username: string,
-    _email: string,
-    _password: string
-): Promise<void> {
-    const ysdk = getSdk();
-    return ysdk.getPlayer().then(_player => {
-        console.log(_player);
-    }).catch(err => {
-        console.error(err);
-    });
-
-    /*
-    return fetchJSON<SignupData>(
-        "/signup",
-        {
-            method: "POST",
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-                "can-confirm": true,
-            }),
-        },
-        true
-    ).then((d) => {
-        if (isSession(d)) {
-            session = d;
-            if (session.sessionId) {
-                storage.set(SESSION_ID_KEY, session.sessionId);
-            }
-        }
-
-        return d;
-    });
-    */
-}
-
-function rememberLogin(): Promise<Session> {
-    return fetchJSON<Session>("/account/info").then((data) => {
-        session = data;
-        storeSession(data);
-        return data;
-    });
+async function rememberLogin(): Promise<Session> {
+    const data = await fetchJSON<Session>("/account/info");
+    session = data;
+    storeSession(data);
+    return data;
 }
 
 async function refresh(): Promise<void> {
@@ -404,9 +362,9 @@ export default {
     isKidMode,
     isShadowban,
     logout,
-    signup,
     login: throttle(login, 1000),
     rememberLogin: throttle(rememberLogin, 1000),
+    autologin,
     restoreStoredSession,
     refresh: throttle(refresh, 1000),
     backgroundRefresh: throttle(backgroundRefresh, 1000),

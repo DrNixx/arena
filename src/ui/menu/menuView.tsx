@@ -8,7 +8,7 @@ import i18n, { plural } from '../../i18n'
 import { hasNetwork } from '../../utils'
 import friendsApi from '../../lichess/friends'
 
-import loginModal from '../loginModal'
+import loginManager from '../login'
 import newGameForm from '../newGameForm'
 import gamesMenu from '../gamesMenu'
 import friendsPopup from '../friendsPopup'
@@ -48,7 +48,7 @@ function renderHeader(user?: Session) {
       { session.isKidMode() ? <div className="kiddo">😊</div> : null }
       { networkStatus(user) }
       { hasNetwork() && !user ?
-        <button className="signInButton" oncreate={helper.ontapXY(loginModal.open)}>
+        <button className="signInButton" oncreate={helper.ontapXY(loginManager.login)}>
           {i18n('signIn')}
         </button> : null
       }

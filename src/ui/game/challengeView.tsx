@@ -4,7 +4,7 @@ import { Share } from '@capacitor/share'
 import { Toast } from '@capacitor/toast'
 import router from '../../router'
 import session from '../../session'
-import loginModal from '../loginModal'
+import loginManager from '../login'
 import spinner from '../../spinner'
 import { standardFen } from '../../lichess/variant'
 import challengesApi from '../../lichess/challenges'
@@ -67,7 +67,7 @@ function joinPopup(ctrl: ChallengeCtrl, challenge: Challenge) {
       i18n('thisGameIsRated'), h('br'), h('br'), i18n('youNeedAnAccountToDoThat'),
       h('div.go_or_cancel', [
         h('button.binary_choice[data-icon=E].withIcon', {
-          oncreate: helper.ontap(loginModal.open)
+          oncreate: helper.ontap(loginManager.login)
         }, i18n('signIn')),
         h('button.binary_choice[data-icon=L].withIcon', {
           oncreate: helper.ontap(router.backHistory)

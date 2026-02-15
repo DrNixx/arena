@@ -9,7 +9,6 @@ import gamesMenu from './gamesMenu'
 import newGameForm from './newGameForm'
 import playMachineForm from './playMachineForm'
 import challengeForm from './challengeForm'
-import loginModal from './loginModal'
 import friendsPopup from './friendsPopup'
 import lobby from './lobby'
 import EdgeOpenHandler, { Handlers } from './shared/sideMenu/EdgeOpenHandler'
@@ -37,7 +36,6 @@ export default {
       h(MainBoard, { header, color, handlers, klass }, content),
       h(MenuView),
       gamesMenu.view(),
-      loginModal.view(),
       newGameForm.view(),
       playMachineForm.view(),
       challengeForm.view(),
@@ -72,7 +70,6 @@ export default {
       ]),
       h(MenuView),
       gamesMenu.view(),
-      loginModal.view(),
       newGameForm.view(),
       playMachineForm.view(),
       challengeForm.view(),

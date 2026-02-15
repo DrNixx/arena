@@ -1,34 +1,32 @@
-import { getSdk } from './sdk';
+import { getSdk } from "./sdk";
 
 export default {
-  get,
-  set,
-  remove,
+    get,
+    set,
+    remove,
+};
+
+async function getStorage() {
+    return await getSdk().getStorage();
 }
 
-function get<T>(k: string): Promise<T | null> {
-  return getSdk()
-    .getStorage()
-      .then((storage) => { 
+async function get<T>(k: string): Promise<T | null> {
+    try {
+        const storage = await getStorage();
         const item = storage.getItem(k);
-        return item ? JSON.parse(item) as T : null
-      })
-      .catch(() => null)
+        return item ? (JSON.parse(item) as T) : null;
+    } catch {
+        return null;
+    }
 }
 
-function remove(k: string): Promise<void> {
-  return getSdk()
-    .getStorage()
-        .then((storage) => { 
-            storage.removeItem(k);
-        });
+async function remove(k: string): Promise<void> {
+    const storage = await getStorage();
+    storage.removeItem(k);
 }
 
-function set<T>(k: string, v: T): Promise<T> {
-    return getSdk()
-        .getStorage()
-            .then((storage) => { 
-                storage.setItem(k, JSON.stringify(v));
-                return v;
-            });
+async function set<T>(k: string, v: T): Promise<T> {
+    const storage = await getStorage();
+    storage.setItem(k, JSON.stringify(v));
+    return v;
 }

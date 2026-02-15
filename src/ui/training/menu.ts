@@ -5,7 +5,7 @@ import router from '../../router'
 import { hasNetwork } from '../../utils'
 import redraw from '../../utils/redraw'
 import { UserData as PuzzleUserData } from '../../lichess/interfaces/training'
-import loginModal from '../loginModal'
+import loginManager from '../login'
 import popupWidget from '../shared/popup'
 import * as helper from '../helper'
 
@@ -96,7 +96,7 @@ function renderSigninBox() {
     h('p', i18n('toGetPersonalizedPuzzles')),
     h('p.signin',
       h('button.defaultButton', {
-        oncreate: helper.ontap(loginModal.open)
+        oncreate: helper.ontap(loginManager.login)
       }, [h('span.fa.fa-user'), i18n('signIn')])
     ),
   ])
