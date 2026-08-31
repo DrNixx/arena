@@ -1,21 +1,21 @@
-import { Toast } from "@capacitor/toast";
-import throttle from "lodash-es/throttle";
-import redraw from "./utils/redraw";
-import signals from "./signals";
-import { ErrorResponse, SESSION_ID_KEY, fetchJSON, fetchText } from "./http";
-import { hasNetwork, handleXhrError, serializeQueryParameters } from "./utils";
-import { getAtPath, setAtPath, pick } from "./utils/object";
-import i18n from "./i18n";
-import settings, { Prop } from "./settings";
-import { TempBan, LobbyData, NowPlayingGame } from "./lichess/interfaces";
-import { PlayTime, Perfs } from "./lichess/interfaces/user";
-import friendsApi from "./lichess/friends";
-import { PrefValue } from "./lichess/prefs";
-import challengesApi from "./lichess/challenges";
-import storage from "./storage";
-import announce, { Announcement } from "./announce";
-import { getSdk } from "./sdk";
-import { Player } from "ysdk";
+import { Toast } from '@capacitor/toast';
+import throttle from 'lodash-es/throttle';
+import redraw from './utils/redraw';
+import signals from './signals';
+import { ErrorResponse, SESSION_ID_KEY, fetchJSON, fetchText } from './http';
+import { hasNetwork, handleXhrError, serializeQueryParameters } from './utils';
+import { getAtPath, setAtPath, pick } from './utils/object';
+import i18n from './i18n';
+import settings, { Prop } from './settings';
+import { TempBan, LobbyData, NowPlayingGame } from './lichess/interfaces';
+import { PlayTime, Perfs } from './lichess/interfaces/user';
+import friendsApi from './lichess/friends';
+import { PrefValue } from './lichess/prefs';
+import challengesApi from './lichess/challenges';
+import storage from './storage';
+import announce, { Announcement } from './announce';
+import { getSdk } from './sdk';
+import { Player } from 'ysdk';
 
 interface Prefs {
     [key: string]: PrefValue;
@@ -71,18 +71,18 @@ function getSession(): Session | undefined {
 
 // store session data for offline usage
 function storeSession(d: Session): void {
-    storage.set("session", d);
+    storage.set('session', d);
 }
 
 // clear session data stored in async storage and sessionId
 function onLogout(): void {
-    storage.remove("session");
+    storage.remove('session');
     storage.remove(SESSION_ID_KEY);
     signals.afterLogout.dispatch();
 }
 
 function restoreStoredSession(): void {
-    storage.get<Session>("session").then((d) => {
+    storage.get<Session>('session').then((d) => {
         session = d || undefined;
         if (d !== null) {
             signals.sessionRestored.dispatch();
@@ -116,9 +116,9 @@ function myTurnGames(): readonly NowPlayingGame[] {
 
 function showSavedPrefToast(data: string): string {
     Toast.show({
-        text: "✓ chess-online.com: " + i18n("yourPreferencesHaveBeenSaved"),
-        position: "center",
-        duration: "short",
+        text: '✓ chess-online.com: ' + i18n('yourPreferencesHaveBeenSaved'),
+        position: 'center',
+        duration: 'short',
     });
     return data;
 }
@@ -127,11 +127,11 @@ function setKidMode(v: boolean, data: Record<string, string>): Promise<void> {
     return fetchText(
         `/account/kid?v=${v}`,
         {
-            method: "POST",
+            method: 'POST',
             body: new URLSearchParams(data),
             headers: {
-                "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                Accept: "application/json, text/*",
+                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                Accept: 'application/json, text/*',
             },
         },
         true
@@ -139,8 +139,8 @@ function setKidMode(v: boolean, data: Record<string, string>): Promise<void> {
 }
 
 function numValue(v: string | boolean | number): string {
-    if (v === true) return "1";
-    else if (v === false) return "0";
+    if (v === true) return '1';
+    else if (v === false) return '0';
     else return String(v);
 }
 
@@ -158,47 +158,47 @@ const savePreferences = throttle((): Promise<string> => {
 
     const display = Object.entries(
         pick(prefs, [
-            "animation",
-            "captured",
-            "highlight",
-            "destination",
-            "coords",
-            "replay",
-            "blindfold",
+            'animation',
+            'captured',
+            'highlight',
+            'destination',
+            'coords',
+            'replay',
+            'blindfold',
         ])
-    ).reduce(makeReducer("display."), {}) as Record<string, string>;
+    ).reduce(makeReducer('display.'), {}) as Record<string, string>;
 
     const behavior = Object.entries(
         pick(prefs, [
-            "premove",
-            "takeback",
-            "autoQueen",
-            "autoThreefold",
-            "submitMove",
-            "confirmResign",
-            "moretime",
+            'premove',
+            'takeback',
+            'autoQueen',
+            'autoThreefold',
+            'submitMove',
+            'confirmResign',
+            'moretime',
         ])
-    ).reduce(makeReducer("behavior."), {}) as Record<string, string>;
+    ).reduce(makeReducer('behavior.'), {}) as Record<string, string>;
 
     const rest = Object.entries(
         pick(prefs, [
-            "clockTenths",
-            "clockBar",
-            "clockSound",
-            "follow",
-            "challenge",
-            "message",
-            "insightShare",
+            'clockTenths',
+            'clockBar',
+            'clockSound',
+            'follow',
+            'challenge',
+            'message',
+            'insightShare',
         ])
-    ).reduce(makeReducer(""), {}) as Record<string, string>;
+    ).reduce(makeReducer(''), {}) as Record<string, string>;
 
     return fetchText(
-        "/account/preferences",
+        '/account/preferences',
         {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                Accept: "application/json, text/*",
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                Accept: 'application/json, text/*',
             },
             body: serializeQueryParameters({ ...rest, ...display, ...behavior }),
         },
@@ -244,7 +244,7 @@ async function initPlayer(force = false) {
 }
 
 /** Провайдер, под которым бэкенд проверяет подпись игрока. */
-const SIGNATURE_PROVIDER = "yandex-game";
+const SIGNATURE_PROVIDER = 'yandex-game';
 
 async function loginInternal(): Promise<Session> {
     const ysdk = getSdk();
@@ -254,9 +254,9 @@ async function loginInternal(): Promise<Session> {
     // в access-логах, Referer и истории браузера.
     const { signature } = await ysdk.getPlayer({ signed: true });
     const data = await fetchJSON<Session | LobbyData>(
-        "/auth/signature",
+        '/auth/signature',
         {
-            method: "POST",
+            method: 'POST',
             body: JSON.stringify({ provider: SIGNATURE_PROVIDER, signature }),
         },
         true
@@ -307,7 +307,7 @@ async function login(): Promise<boolean> {
 
 async function logout() {
   try {
-        await fetchJSON("/logout", { method: "POST" }, true);
+        await fetchJSON('/logout', { method: 'POST' }, true);
         session = undefined;
         onLogout();
         friendsApi.clear();
@@ -325,7 +325,7 @@ async function confirmEmail(token: string): Promise<Session> {
 }
 
 async function rememberLogin(): Promise<Session> {
-    const data = await fetchJSON<Session>("/account/info");
+    const data = await fetchJSON<Session>('/account/info');
     session = data;
     storeSession(data);
     return data;
@@ -333,7 +333,7 @@ async function rememberLogin(): Promise<Session> {
 
 async function refresh(): Promise<void> {
     try {
-        const data = await fetchJSON<Session>("/account/info", { cache: "reload" });
+        const data = await fetchJSON<Session>('/account/info', { cache: 'reload' });
         session = data;
         storeSession(data);
         announce.set(data.announce);
@@ -348,9 +348,9 @@ async function refresh(): Promise<void> {
             onLogout();
             redraw();
             Toast.show({
-                text: "You have been signed out",
-                position: "center",
-                duration: "short",
+                text: 'You have been signed out',
+                position: 'center',
+                duration: 'short',
             });
         }
     }
@@ -358,7 +358,7 @@ async function refresh(): Promise<void> {
 
 async function backgroundRefresh(): Promise<void> {
     if (hasNetwork() && isConnected()) {
-        const data = await fetchJSON<Session>("/account/info");
+        const data = await fetchJSON<Session>('/account/info');
         session = data;
         storeSession(data);
         announce.set(data.announce);

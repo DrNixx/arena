@@ -1,4 +1,4 @@
-import { getSdk } from "./sdk";
+import { getSdk } from './sdk';
 
 export default {
     get,

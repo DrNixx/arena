@@ -1,4 +1,4 @@
-import { State } from "chessground/state"
+import { State } from 'chessground/state'
 
 const pieceScores: { [id: string]: number } = {
     pawn: 1,

@@ -26,6 +26,7 @@ npm run serve                 # http-server на :8080, открывать http:
 npm start                     # watch + serve одновременно
 npm run clean                 # чистит build/ и артефакты в www/
 npm test                      # jest, 6 сьютов / 48 тестов, проходят
+npm run lint                  # eslint, проходит чисто
 npx tsc --noEmit              # быстрая проверка типов (проходит чисто)
 ```
 
@@ -42,11 +43,22 @@ APP_CONFIG=yandex APP_MODE=release npm run build
   в `.gitignore` — локальные.
 * `APP_MODE` = `dev` | `release`; `release` включает strip + terser в `rollup.config.js`.
 
-### `npm run lint` не работает
+### Линтер
 
-ESLint 9 требует flat config (`eslint.config.js`), а в репозитории только `.eslintrc.json` и `.eslintignore`.
-Правила из `.eslintrc.json`, которые надо перенести при миграции: одинарные кавычки, `eqeqeq: smart`, `semi` off.
-Пока линтера нет, проверка — это `npm test` плюс `npx tsc --noEmit`.
+Конфиг — flat (`eslint.config.js`, CommonJS); `.eslintrc.json` и `.eslintignore` удалены, ESLint 9 их не читает.
+
+Набор правил намеренно минимальный и ровно тот же, что был до миграции: `quotes` (одинарные, `avoidEscape`),
+`eqeqeq: smart`, `semi` off. Пресеты (`eslint:recommended`, `@typescript-eslint/recommended`) **не подключены** —
+это следующий осознанный шаг, он даст заметный поток замечаний.
+
+Два следствия, о которых стоит знать:
+
+* Скрипт `eslint src/` без `--ext` под старым конфигом проверял **только `.js`** — три вендорных файла
+  из 357. Во flat config расширения перечислены явно (`files: src/**/*.{js,ts,tsx}`), так что охват вырос
+  с трёх файлов до всего `src/`.
+* `reportUnusedDisableDirectives` выключен. Существующие `eslint-disable` гасят правила из неподключённых
+  пресетов (сплошной disable на вендорных `src/dts/*.d.ts`, `prefer-const` в `socket/index.ts`), поэтому
+  числятся неиспользованными, а `--fix` их удаляет. Когда пресеты появятся, директивы понадобятся обратно.
 
 ### Настройка тестов (о чём легко споткнуться)
 
@@ -200,4 +212,5 @@ YaGames.init() -> setSdk(ysdk) -> initNetwork -> settingsInit -> appInit -> rout
 * Комментарии писать по-русски; эталонная локаль — `ru` (`translation/`, `www/i18n/`).
 * Стили — Stylus, всё подключается через `src/styl/index.styl`.
 * Форматирование в `src/session.ts`, `src/http.ts`, `src/storage.ts` отличается от остального кода
-  (4 пробела, точки с запятой, двойные кавычки) — это следы рефакторинга ветки `yandex`, а не общий стиль.
+  (4 пробела, точки с запятой) — это следы рефакторинга ветки `yandex`, а не общий стиль. Кавычки там
+  уже приведены к одинарным автофиксом линтера.
