@@ -1,6 +1,5 @@
 /// <reference path="dts/index.d.ts" />
 import { App } from '@capacitor/app';
-import { SplashScreen } from '@capacitor/splash-screen';
 
 import appInit from './app';
 import { init as settingsInit } from './settings';
@@ -32,11 +31,6 @@ YaGames.init()
     .then(themeInit)
     .then(i18nInit)
     .then(() => processWindowLocation())
-    .then(() => {
-        setTimeout(() => {
-            SplashScreen.hide();
-        }, 500)
-    })
     .then(() => {
         session.autologin().then(() => redraw());
     })
