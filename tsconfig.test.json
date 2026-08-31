@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
+    // ts-jest требует commonjs: с унаследованным module=esnext динамические import()
+    // остаются нативными, проходят мимо трансформа jest и падают на ESM-пакетах.
+    "module": "commonjs",
     "types": ["lodash-es", "d3", "jest"],
     "esModuleInterop": true,
   },

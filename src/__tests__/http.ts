@@ -127,19 +127,28 @@ describe('HTTP fetch wrapper', () => {
     })
   })
 
-  test('request call fetch with correct url', () => {
+  // http.request читает sessionId через `await storage.get()`, поэтому fetch
+  // вызывается не синхронно - перед проверками нужно дать очереди прокрутиться.
+  // .catch гасит ожидаемое отклонение: мок fetch возвращает undefined, и запрос
+  // падает уже после того, как мы зафиксировали аргументы вызова.
+  function callAndFlush(call: Promise<unknown>): Promise<void> {
+    call.catch(() => undefined)
+    return new Promise(resolve => setTimeout(resolve, 0))
+  }
+
+  test('request call fetch with correct url', async () => {
     global.fetch = jest.fn()
 
-    http.fetchJSON('/api/test')
+    await callAndFlush(http.fetchJSON('/api/test'))
 
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('http://test.org/api/test')
   })
 
-  test('GET request call fetch with correct opts', () => {
+  test('GET request call fetch with correct opts', async () => {
     global.fetch = jest.fn()
 
-    http.fetchJSON('/api/test')
+    await callAndFlush(http.fetchJSON('/api/test'))
 
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     expect((global.fetch as jest.Mock).mock.calls[0][1]).toEqual({
@@ -152,16 +161,16 @@ describe('HTTP fetch wrapper', () => {
     })
   })
 
-  test('Request opts can be overriden', () => {
+  test('Request opts can be overriden', async () => {
     global.fetch = jest.fn()
 
-    http.fetchJSON('/api/test', {
+    await callAndFlush(http.fetchJSON('/api/test', {
       headers: {
         'Accept': 'application/json, text/*',
         'X-Requested-With': '__delete',
       },
       credentials: 'omit',
-    })
+    }))
 
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     expect((global.fetch as jest.Mock).mock.calls[0][1]).toEqual({
@@ -173,24 +182,24 @@ describe('HTTP fetch wrapper', () => {
     })
   })
 
-  test('GET query params are url encoded', () => {
+  test('GET query params are url encoded', async () => {
     global.fetch = jest.fn()
 
-    http.fetchJSON('/api/test', {
+    await callAndFlush(http.fetchJSON('/api/test', {
       query: {
         q: 'text url encoded',
         v: 1234
       }
-    })
+    }))
 
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('http://test.org/api/test?q=text%20url%20encoded&v=1234')
   })
 
-  test('POST request call fetch with correct opts', () => {
+  test('POST request call fetch with correct opts', async () => {
     global.fetch = jest.fn()
 
-    http.fetchJSON('/api/test', { method: 'POST' })
+    await callAndFlush(http.fetchJSON('/api/test', { method: 'POST' }))
 
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     expect((global.fetch as jest.Mock).mock.calls[0][1]).toEqual({

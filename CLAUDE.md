@@ -25,8 +25,11 @@ npm run watch                 # инкрементальная пересбор�
 npm run serve                 # http-server на :8080, открывать http://localhost:8080/www
 npm start                     # watch + serve одновременно
 npm run clean                 # чистит build/ и артефакты в www/
+npm test                      # jest, 6 сьютов / 48 тестов, проходят
 npx tsc --noEmit              # быстрая проверка типов (проходит чисто)
 ```
+
+Один сьют: `npx jest src/__tests__/http.ts`, один тест: `npx jest -t 'GET query params are url encoded'`.
 
 Сборка параметризуется переменными окружения (см. `scripts/inject-conf.js`):
 
@@ -39,19 +42,27 @@ APP_CONFIG=yandex APP_MODE=release npm run build
   в `.gitignore` — локальные.
 * `APP_MODE` = `dev` | `release`; `release` включает strip + terser в `rollup.config.js`.
 
-### Скрипты, которые сейчас не работают
+### `npm run lint` не работает
 
-* `npm run lint` — падает: ESLint 9 требует flat config (`eslint.config.js`), а в репозитории только
-  `.eslintrc.json` и `.eslintignore`. Правила из `.eslintrc.json`: одинарные кавычки, `eqeqeq: smart`, `semi` off.
-* `npm run test` — падает: `jest-environment-jsdom` не установлен (Jest 28+ его не тянет).
-  Тестов немного: `src/**/__tests__/*` (fen, object, util, http, ForecastCtrl, backoff).
+ESLint 9 требует flat config (`eslint.config.js`), а в репозитории только `.eslintrc.json` и `.eslintignore`.
+Правила из `.eslintrc.json`, которые надо перенести при миграции: одинарные кавычки, `eqeqeq: smart`, `semi` off.
+Пока линтера нет, проверка — это `npm test` плюс `npx tsc --noEmit`.
 
-Не считай эти команды «проверкой» — используй `npx tsc --noEmit`. Починка этих скриптов — отдельная осознанная задача.
+### Настройка тестов (о чём легко споткнуться)
+
+* `tsconfig.test.json` переопределяет `module` на `commonjs`. С унаследованным из `tsconfig.json`
+  `esnext` ts-jest оставляет динамические `import()` нативными, они проходят мимо трансформа jest
+  и падают на первом же ESM-пакете (цепочка `network/index.ts` → `NetworkWeb` → `xhr` → `session`).
+* `lodash-es` — ESM-only, а node_modules jest не трансформирует. В `moduleNameMapper` он подменён
+  на CJS-сборку `lodash`, которая держится в той же версии (`4.17.21`) и стоит только в devDependencies.
+  `date-fns` подмены не требует: у неё есть `require`-экспорт.
+* Тесты `src/__tests__/http.ts` обязаны быть асинхронными: `http.request` читает `sessionId` через
+  `await storage.get()`, поэтому `fetch` вызывается не синхронно (см. хелпер `callAndFlush`).
 
 ### Windows
 
-npm-скрипты написаны в POSIX-синтаксисе (`concurrently 'npm:watch'`, `NODE_OPTIONS=... jest`) — запускай их
-через Git Bash, а не через PowerShell/cmd.
+`npm start` и `npm run watch` написаны в POSIX-синтаксисе (`concurrently 'npm:watch'`) — запускай их
+через Git Bash, а не через PowerShell/cmd. `npm test`, `npm run build` и `npm run lint` работают везде.
 
 ## Архитектура
 

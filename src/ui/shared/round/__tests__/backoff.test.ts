@@ -4,7 +4,8 @@ describe('backoff', () => {
   const delay = 1000
   const currentTime = 1234.234 // ms since "origin time"; for testing purposes, greater than initial delay
   jest.spyOn(performance, 'now').mockImplementation(() => currentTime)
-  jest.useFakeTimers('legacy')
+  // legacy-таймеры, а не modern: тест ниже проверяет setTimeout как мок-функцию
+  jest.useFakeTimers({ legacyFakeTimers: true })
 
   test('executes the first call immediately', () => {
     // expected delays: 0, 200, 400, 800, ...
