@@ -26,6 +26,11 @@ beforeAll(() => {
   global.Headers = Headers
 })
 
+afterEach(() => {
+  // хук глобален для модуля - без сброса он протечёт в соседние тесты
+  http.setUnauthorizedHandler(undefined)
+})
+
 describe('HTTP fetch wrapper', () => {
   test('if response ok, fetchJSON returns extracted json body', async () => {
 
@@ -211,6 +216,80 @@ describe('HTTP fetch wrapper', () => {
         'Content-Type': 'application/json; charset=UTF-8'
       }),
       body: '{}'
+    })
+  })
+
+  // Восстановление сессии при 401: http зовёт зарегистрированный хук и,
+  // если тот сумел перелогиниться, повторяет запрос ровно один раз.
+  describe('восстановление при 401', () => {
+    function respondWith(status: number, body: unknown) {
+      return () => Promise.resolve({
+        status,
+        ok: status >= 200 && status < 300,
+        json: () => Promise.resolve(body),
+        text: () => Promise.resolve(JSON.stringify(body)),
+      })
+    }
+
+    test('GET повторяется, если хук восстановил сессию', async () => {
+      global.fetch = jest.fn()
+        .mockImplementationOnce(respondWith(401, { error: 'unauthorized' }))
+        .mockImplementationOnce(respondWith(200, { data: 'hello' }))
+      const handler = jest.fn().mockResolvedValue(true)
+      http.setUnauthorizedHandler(handler)
+
+      await expect(http.fetchJSON('/api/test')).resolves.toEqual({ data: 'hello' })
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(2)
+    })
+
+    test('GET не повторяется, если хук не смог восстановить сессию', async () => {
+      global.fetch = jest.fn().mockImplementation(respondWith(401, { error: 'unauthorized' }))
+      const handler = jest.fn().mockResolvedValue(false)
+      http.setUnauthorizedHandler(handler)
+
+      await expect(http.fetchJSON('/api/test')).rejects.toEqual({
+        status: 401,
+        body: { error: 'unauthorized' }
+      })
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
+    })
+
+    test('POST не повторяется: повтор продублировал бы действие', async () => {
+      global.fetch = jest.fn().mockImplementation(respondWith(401, { error: 'unauthorized' }))
+      const handler = jest.fn().mockResolvedValue(true)
+      http.setUnauthorizedHandler(handler)
+
+      await expect(http.fetchJSON('/api/test', { method: 'POST' })).rejects.toEqual({
+        status: 401,
+        body: { error: 'unauthorized' }
+      })
+      expect(handler).not.toHaveBeenCalled()
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
+    })
+
+    test('noAuthRecovery отключает восстановление - иначе логин зациклится сам на себе', async () => {
+      global.fetch = jest.fn().mockImplementation(respondWith(401, { error: 'unauthorized' }))
+      const handler = jest.fn().mockResolvedValue(true)
+      http.setUnauthorizedHandler(handler)
+
+      await expect(http.fetchJSON('/api/test', { noAuthRecovery: true })).rejects.toEqual({
+        status: 401,
+        body: { error: 'unauthorized' }
+      })
+      expect(handler).not.toHaveBeenCalled()
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
+    })
+
+    test('без зарегистрированного хука поведение прежнее', async () => {
+      global.fetch = jest.fn().mockImplementation(respondWith(401, { error: 'unauthorized' }))
+
+      await expect(http.fetchJSON('/api/test')).rejects.toEqual({
+        status: 401,
+        body: { error: 'unauthorized' }
+      })
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(1)
     })
   })
 })

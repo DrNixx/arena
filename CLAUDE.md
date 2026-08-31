@@ -109,12 +109,13 @@ APP_CONFIG=yandex APP_MODE=release npm run build
 `src/main.ts` жёстко завязана на Yandex SDK, и порядок в ней значим:
 
 ```
-YaGames.init() -> setSdk(ysdk) -> initNetwork -> settingsInit -> appInit -> routes/deepLinks
-                -> theme -> i18n -> processWindowLocation -> session.autologin()
+YaGames.init() -> setSdk(ysdk) + setUnauthorizedHandler -> initNetwork -> settingsInit
+                -> appInit -> routes/deepLinks -> theme -> i18n -> processWindowLocation
+                -> session.establish()
 ```
 
-`src/sdk.ts` — тривиальный синглтон (`setSdk`/`getSdk`) **без проверки на инициализацию**. Любой вызов
-`getSdk()` до `YaGames.init()` вернёт `undefined` и упадёт. Скрипт SDK подключается синхронно в `<head>`
+`src/sdk.ts` — синглтон (`setSdk`/`getSdk`); `getSdk()` бросает внятную ошибку, если его позвали
+до того, как разрешился `YaGames.init()`. Скрипт SDK подключается синхронно в `<head>`
 по `{{{sdkUrl}}}`: `dev`/`yandex` тянут `https://sdk.games.s3.yandex.net/sdk.js`, `prod`/`draft` ожидают
 самохостящийся `/sdk.js` рядом с `index.html` (в репозитории его нет — файл кладётся при деплое,
 `www/*.js` в `.gitignore`).
@@ -136,8 +137,17 @@ YaGames.init() -> setSdk(ysdk) -> initNetwork -> settingsInit -> appInit -> rout
   то есть это фактически бессрочный предъявительский credential, и в URL он оседал бы в access-логах и `Referer`.
   Отдельный маршрут нужен потому, что `POST /login` в lila уже занят формой логин/пароль
   (`controllers.Auth.authenticate`).
-* `autologin()` — вызывается в конце `main.ts`; логинится **только если** `player.isAuthorized()`.
-  Анонимный игрок Yandex остаётся анонимом, приложение работает без сессии.
+* `establish()` — **единственная** точка установления сессии на старте. Параллельные вызовы
+  дедуплицируются общим промисом, поэтому её зовут оба места (`main.ts` в конце цепочки и `app.ts`
+  из `onOnline()`) без всякой гонки. Порядок внутри:
+  1. сверить `player.getUniqueID()` с сохранённым `yandexPlayerId`; не совпало — сбросить сессию
+     через `onLogout()`, иначе после смены аккаунта Yandex уцелевший `sessionId` покажет чужой профиль;
+  2. если сохранённый id есть — дешёвый путь `rememberLogin()` (`GET /account/info`), лимит
+     `getPlayer` не тратится. Ошибка со `status === 0` означает «нет сети» — отдаём офлайн-копию;
+  3. иначе, если игрок авторизован в Yandex, — `loginInternal()`.
+  Анонимный игрок Yandex остаётся анонимом: это штатный режим, играть можно без входа.
+* `recoverFromUnauthorized()` — молчаливый перелогин, зарегистрирован в `http.ts` из `main.ts`.
+  Тоже дедуплицирован: пачка параллельных 401 иначе сожгла бы лимит `getPlayer`.
 * `login()` (интерактивный, `throttle` 1 с) — если игрок не авторизован, открывает `ysdk.auth.openAuthDialog()`,
   переинициализирует игрока (`initPlayer(true)`) и вызывает `loginInternal()`. Возвращает `boolean`,
   а не бросает исключение при отказе от диалога.
@@ -159,15 +169,31 @@ YaGames.init() -> setSdk(ysdk) -> initNetwork -> settingsInit -> appInit -> rout
    `reconnectCurrent()` пересоздаёт соединение, чтобы подхватить свежий `sessionId`; он подписан на
    `signals.afterLogout`.
 
-`sessionId` приходит **только** в ответе на `/login` (поле `Session.sessionId`, помечено «sent on login/signup only»)
-и складывается в storage; сам объект сессии дублируется в storage под ключом `session` для оффлайна
-(`restoreStoredSession()`).
+`sessionId` приходит **только** в ответе на `/auth/signature` (поле `Session.sessionId`, помечено
+«sent on login/signup only») и складывается в storage; сам объект сессии дублируется под ключом `session`
+для оффлайна (`restoreStoredSession()`), а идентификатор игрока Yandex — под `yandexPlayerId`.
+Все три ключа чистит `onLogout()`.
+
+### Восстановление при 401
+
+`http.ts` держит хук `setUnauthorizedHandler()` — инъекция, а не импорт `session.ts`, чтобы не заводить
+цикл (обратный импорт уже есть). `main.ts` регистрирует туда `session.recoverFromUnauthorized` сразу
+после `setSdk`. При 401 запрос повторяется ровно один раз, и только если хук доложил об успехе.
+
+Два ограничения, оба намеренные:
+
+* **Повторяются только GET.** Повтор POST продублировал бы ход, вызов или создание игры. После
+  неудачного POST сессия всё равно восстановится и следующий запрос пройдёт — пользователь теряет
+  одно действие, а не получает два.
+* **`noAuthRecovery: true`** стоит на самих запросах логина (`rememberLogin`, `loginInternal`).
+  Без этого восстановление ушло бы в рекурсию и заклинило на собственном дедуплицирующем промисе.
 
 ### Обновление и выход
 
 * `refresh()` / `backgroundRefresh()` / `rememberLogin()` — все три идут в `GET /account/info`.
-  `refresh()` на `401` считает сессию потерянной: чистит storage, шлёт `signals.afterLogout`, показывает тост.
-* `logout()` — `POST /logout`, затем `onLogout()` (удаляет `session` и `sessionId` из storage) и
+  Ветка `401` в `refresh()` (сброс сессии, `signals.afterLogout`, тост) осталась последним рубежом —
+  до неё дело доходит, только когда автоматическое восстановление не помогло.
+* `logout()` — `POST /logout`, затем `onLogout()` (чистит `session`, `sessionId`, `yandexPlayerId`) и
   `signals.afterLogout` → реконнект сокета.
 * `app.ts` перезапрашивает `session.refresh()` при возврате приложения в foreground (`appStateChange`).
 
@@ -189,10 +215,6 @@ YaGames.init() -> setSdk(ysdk) -> initNetwork -> settingsInit -> appInit -> rout
 
 ### Известные шероховатости (учитывать при правках)
 
-* **Гонка на холодном старте.** `appInit()` (вызывается в середине цепочки `main.ts`) регистрирует
-  `Network.getStatus().then(onOnline)`, а `onOnline()` дёргает `session.rememberLogin()` → `/account/info`
-  по *старому* сохранённому `sessionId`/куке. Это происходит раньше, чем `session.autologin()` в конце цепочки
-  сделает `/auth/signature` по подписи. То есть при запуске конкурируют два пути установления сессии.
 * `handleXhrError` в `src/utils/index.ts` содержит захардкоженные строки («Chess-Online Arena is unreachable»)
   вне i18n.
 * `Session` всё ещё несёт legacy-поля lichess: `confirmEmail()`, `SignupData`/`EmailConfirm`, `setKidMode()` —

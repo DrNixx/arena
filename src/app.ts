@@ -90,14 +90,15 @@ function onOnline() {
         .then(() => {
           firstConnection = false
           getPools()
-          session.rememberLogin()
-            .then(() => {
-              challengesApi.refresh()
+          // Тот же establish(), что и в main.ts: вызовы дедуплицируются,
+          // так что второй просто дождётся первого, а не устроит гонку.
+          session.establish()
+            .then((s) => {
+              if (s === undefined) console.log('connected as anonymous')
+              else challengesApi.refresh()
               redraw()
             })
-            .catch(() => {
-              console.log('connected as anonymous')
-            })
+            .catch((e) => console.error(e))
         })
         .catch((e) => {
           console.error(e)

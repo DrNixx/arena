@@ -22,6 +22,37 @@ export interface RequestOpts {
     mode?: RequestMode
     credentials?: RequestCredentials
     timeout?: number
+    /**
+     * Не пытаться восстановить сессию при 401. Обязателен для самих запросов
+     * логина: иначе восстановление уйдёт в рекурсию и заклинится на собственном
+     * дедуплицирующем промисе.
+     */
+    noAuthRecovery?: boolean
+}
+
+/** Возвращает true, если сессию удалось восстановить и запрос имеет смысл повторить. */
+type UnauthorizedHandler = () => Promise<boolean>
+
+let unauthorizedHandler: UnauthorizedHandler | undefined
+
+/**
+ * Регистрирует восстановление сессии при 401. Сделано инъекцией, а не импортом
+ * session.ts: обратный импорт уже есть, и цикл здесь ни к чему. Тот же приём,
+ * что и setSdk в sdk.ts.
+ */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | undefined): void {
+    unauthorizedHandler = handler
+}
+
+function canRecoverFromUnauthorized(err: unknown, opts?: RequestOpts): boolean {
+    if (unauthorizedHandler === undefined) return false
+    if (opts?.noAuthRecovery) return false
+    // Повторяем только идемпотентные чтения: повтор POST продублировал бы ход,
+    // вызов или создание игры. После неудачного POST сессия всё равно
+    // восстановится, и следующий запрос пройдёт.
+    if ((opts?.method ?? 'GET') !== 'GET') return false
+
+    return (err as ErrorResponse).status === 401
 }
 
 function addQuerystring(url: string, querystring: string): string {
@@ -34,6 +65,22 @@ function addQuerystring(url: string, querystring: string): string {
 // for convenience, this wrapper returns a promise with the response body already
 // extracted
 async function request<T>(url: string, type: 'json' | 'text', opts?: RequestOpts, feedback = false): Promise<T> {
+    try {
+        return await performRequest<T>(url, type, opts, feedback)
+    } catch (err) {
+        if (!canRecoverFromUnauthorized(err, opts)) throw err
+
+        // Хук дедуплицирован на стороне session, так что пачка параллельных 401
+        // приведёт к одной попытке перелогина, а не к десятку.
+        const recovered = await unauthorizedHandler!()
+        if (!recovered) throw err
+
+        // Ровно один повтор: если сессия снова оказалась негодной, отдаём ошибку.
+        return performRequest<T>(url, type, opts, feedback)
+    }
+}
+
+async function performRequest<T>(url: string, type: 'json' | 'text', opts?: RequestOpts, feedback = false): Promise<T> {
 
     let timeoutId: number
 

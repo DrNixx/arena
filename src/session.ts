@@ -59,6 +59,12 @@ export interface Session {
     readonly announce?: Announcement;
 }
 
+/**
+ * Идентификатор игрока Yandex, которому принадлежит сохранённая сессия.
+ * Нужен, чтобы после смены аккаунта не показать чужой профиль по уцелевшему sessionId.
+ */
+const PLAYER_ID_KEY = 'yandexPlayerId';
+
 let session: Session | undefined;
 
 function isConnected(): boolean {
@@ -78,16 +84,19 @@ function storeSession(d: Session): void {
 function onLogout(): void {
     storage.remove('session');
     storage.remove(SESSION_ID_KEY);
+    storage.remove(PLAYER_ID_KEY);
     signals.afterLogout.dispatch();
 }
 
 function restoreStoredSession(): void {
     storage.get<Session>('session').then((d) => {
-        session = d || undefined;
-        if (d !== null) {
-            signals.sessionRestored.dispatch();
-            redraw();
-        }
+        // Чтение из storage асинхронно и может прийти уже после успешного
+        // логина - тогда офлайн-копия затёрла бы свежую сессию.
+        if (session !== undefined || d === null) return;
+
+        session = d;
+        signals.sessionRestored.dispatch();
+        redraw();
     });
 }
 
@@ -258,6 +267,7 @@ async function loginInternal(): Promise<Session> {
         {
             method: 'POST',
             body: JSON.stringify({ provider: SIGNATURE_PROVIDER, signature }),
+            noAuthRecovery: true,
         },
         true
     );
@@ -270,14 +280,88 @@ async function loginInternal(): Promise<Session> {
     if (session.sessionId) {
         storage.set(SESSION_ID_KEY, session.sessionId);
     }
+    // Запоминаем, чьей сессией это стало: на следующем старте сверим с текущим
+    // игроком Yandex, прежде чем доверять сохранённому sessionId.
+    storage.set(PLAYER_ID_KEY, (await initPlayer()).getUniqueID());
     storeSession(data);
     return session;
 }
 
-async function autologin() {
+let pendingEstablish: Promise<Session | undefined> | undefined;
+
+/**
+ * Единственная точка установления сессии на старте. Раньше их было две -
+ * rememberLogin() из app.ts и autologin() из main.ts, - и они гонялись за одну
+ * и ту же переменную. Параллельные вызовы дедуплицируются, поэтому оба места
+ * вызова могут остаться на своих местах.
+ */
+function establish(): Promise<Session | undefined> {
+    if (pendingEstablish === undefined) {
+        pendingEstablish = doEstablish().finally(() => {
+            pendingEstablish = undefined;
+        });
+    }
+
+    return pendingEstablish;
+}
+
+async function doEstablish(): Promise<Session | undefined> {
     const player = await initPlayer();
-    if (player.isAuthorized()) {
+    const currentPlayerId = player.isAuthorized() ? player.getUniqueID() : undefined;
+    let storedPlayerId = await storage.get<string>(PLAYER_ID_KEY);
+
+    if (storedPlayerId !== null && storedPlayerId !== currentPlayerId) {
+        // Игрок сменил аккаунт Yandex: сохранённый sessionId принадлежит другому
+        // человеку и на бэке он всё ещё валиден - покажем чужой профиль.
+        session = undefined;
+        onLogout();
+        storedPlayerId = null;
+    }
+
+    if (storedPlayerId !== null) {
+        // Дешёвый путь: сессия уже есть, подпись не нужна и лимит getPlayer цел.
+        try {
+            return await rememberLogin();
+        } catch (err) {
+            if ((err as ErrorResponse).status === 0) {
+                // Сети нет - подпись тем более не пройдёт, отдаём офлайн-копию.
+                restoreStoredSession();
+                return undefined;
+            }
+        }
+    }
+
+    // Аноним - штатный режим: играть можно и без входа.
+    if (currentPlayerId === undefined) return undefined;
+
+    return loginInternal();
+}
+
+let pendingRecovery: Promise<boolean> | undefined;
+
+/**
+ * Молчаливый перелогин при 401, вызывается из http.ts. Дедуплицирован: иначе
+ * пачка параллельных 401 сожгла бы лимит getPlayer (20 вызовов за 5 минут).
+ */
+function recoverFromUnauthorized(): Promise<boolean> {
+    if (pendingRecovery === undefined) {
+        pendingRecovery = doRecoverFromUnauthorized().finally(() => {
+            pendingRecovery = undefined;
+        });
+    }
+
+    return pendingRecovery;
+}
+
+async function doRecoverFromUnauthorized(): Promise<boolean> {
+    const player = await initPlayer();
+    if (!player.isAuthorized()) return false;
+
+    try {
         await loginInternal();
+        return true;
+    } catch (_) {
+        return false;
     }
 }
 
@@ -324,8 +408,12 @@ async function confirmEmail(token: string): Promise<Session> {
     return session;
 }
 
+/**
+ * Восстановление сессии по сохранённому sessionId / куке. Внутренняя: наружу её
+ * отдавать нельзя, ровно внешний вызов из app.ts и создавал гонку с autologin().
+ */
 async function rememberLogin(): Promise<Session> {
-    const data = await fetchJSON<Session>('/account/info');
+    const data = await fetchJSON<Session>('/account/info', { noAuthRecovery: true });
     session = data;
     storeSession(data);
     return data;
@@ -375,8 +463,8 @@ export default {
     isShadowban,
     logout,
     login: throttle(login, 1000),
-    rememberLogin: throttle(rememberLogin, 1000),
-    autologin,
+    establish,
+    recoverFromUnauthorized,
     restoreStoredSession,
     refresh: throttle(refresh, 1000),
     backgroundRefresh: throttle(backgroundRefresh, 1000),

@@ -11,6 +11,7 @@ import { processWindowLocation } from './router';
 import deepLinks from './deepLinks';
 import globalConfig from './config';
 import { setSdk } from './sdk';
+import { setUnauthorizedHandler } from './http';
 import redraw from './utils/redraw';
 import { initNetwork } from './utils';
 import session from './session';
@@ -19,6 +20,8 @@ YaGames.init()
     .then((ysdk) => {
         console.log('Yandex SDK initialized');
         setSdk(ysdk);
+        // Регистрируем до первого запроса, чтобы 401 умел чиниться сам с самого старта.
+        setUnauthorizedHandler(session.recoverFromUnauthorized);
     })
     .then(() => initNetwork())
     .then(() => settingsInit())
@@ -32,6 +35,6 @@ YaGames.init()
     .then(i18nInit)
     .then(() => processWindowLocation())
     .then(() => {
-        session.autologin().then(() => redraw());
+        session.establish().then(() => redraw());
     })
     .catch((e) => console.error(e));
