@@ -243,23 +243,35 @@ async function initPlayer(force = false) {
     return playerInstance;
 }
 
+/** Провайдер, под которым бэкенд проверяет подпись игрока. */
+const SIGNATURE_PROVIDER = "yandex-game";
+
 async function loginInternal(): Promise<Session> {
     const ysdk = getSdk();
-    const signatured = await ysdk.getPlayer({ signed: true });
-    const signature = encodeURIComponent(signatured.signature);
-    return fetchJSON<Session | LobbyData>(`/login?signature=${signature}&provider=yandex-game`, {method: "GET"},true)
-        .then((data) => {
-            if (isSession(data)) {
-                session = data;
-                if (session.sessionId) {
-                    storage.set(SESSION_ID_KEY, session.sessionId);
-                }
-                storeSession(data);
-                return session;
-            } else {
-                throw { ipban: true };
-            }
-        });
+    // Подпись Yandex Games — это долгоживущий предъявительский credential
+    // вида base64(hmac).base64(профиль), привязать к ней nonce нельзя.
+    // Поэтому передаём её только телом POST: в query-строке она осела бы
+    // в access-логах, Referer и истории браузера.
+    const { signature } = await ysdk.getPlayer({ signed: true });
+    const data = await fetchJSON<Session | LobbyData>(
+        "/auth/signature",
+        {
+            method: "POST",
+            body: JSON.stringify({ provider: SIGNATURE_PROVIDER, signature }),
+        },
+        true
+    );
+
+    if (!isSession(data)) {
+        throw { ipban: true };
+    }
+
+    session = data;
+    if (session.sessionId) {
+        storage.set(SESSION_ID_KEY, session.sessionId);
+    }
+    storeSession(data);
+    return session;
 }
 
 async function autologin() {
