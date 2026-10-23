@@ -6,6 +6,7 @@ import { ErrorResponse, SESSION_ID_KEY, fetchJSON, fetchText } from './http';
 import { hasNetwork, handleXhrError, serializeQueryParameters } from './utils';
 import { getAtPath, setAtPath, pick } from './utils/object';
 import i18n from './i18n';
+import globalConfig from './config'
 import settings, { Prop } from './settings';
 import { TempBan, LobbyData, NowPlayingGame } from './lichess/interfaces';
 import { PlayTime, Perfs } from './lichess/interfaces/user';
@@ -253,7 +254,7 @@ async function initPlayer(force = false) {
 }
 
 /** Провайдер, под которым бэкенд проверяет подпись игрока. */
-const SIGNATURE_PROVIDER = 'yandex-game';
+const SIGNATURE_PROVIDER = globalConfig.providerName;
 
 async function loginInternal(): Promise<Session> {
     const ysdk = getSdk();

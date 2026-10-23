@@ -131,7 +131,8 @@ YaGames.init() -> setSdk(ysdk) + setUnauthorizedHandler -> initNetwork -> settin
 * `initPlayer()` — кэширует `ysdk.getPlayer()` (обычный `Player`, есть `isAuthorized()`).
 * `loginInternal()` — берёт `ysdk.getPlayer({ signed: true })`, что возвращает **только** `{ signature }`
   (см. `@types/ysdk`), и делает `POST /auth/signature` с телом
-  `{"provider": "yandex-game", "signature": "<base64 hmac>.<base64 профиля>"}`.
+  `{"provider": "yandex-game", "signature": "<platform assertion>"}`. Формат assertion клиент не разбирает,
+  его проверяет бэкенд (см. «Контракт `POST /auth/signature`»).
   Подпись намеренно **не передаётся в query-строке**: у неё долгий TTL, привязать к ней nonce нельзя
   (`getPlayer` не принимает `requestPayload`, в отличие от `payments.purchase` с его `developerPayload`),
   то есть это фактически бессрочный предъявительский credential, и в URL он оседал бы в access-логах и `Referer`.
@@ -197,21 +198,25 @@ YaGames.init() -> setSdk(ysdk) + setUnauthorizedHandler -> initNetwork -> settin
   `signals.afterLogout` → реконнект сокета.
 * `app.ts` перезапрашивает `session.refresh()` при возврате приложения в foreground (`appStateChange`).
 
-### Контракт `POST /auth/signature` (на бэкенде ещё не реализован)
+### Контракт `POST /auth/signature` (реализован на бэкенде)
 
-В чекауте бэкенда `line` (ветка `chess-online2`) обработчика нет: `GET /login` там — это `oidcLogin`,
-который редиректит на OIDC-провайдера и игнорирует любые параметры подписи. Клиент уже шлёт новый формат,
-серверную часть нужно написать. Что она обязана делать:
+Эндпоинт `POST <lila-base-url>/auth/signature` предназначен для мобильного/игрового клиента:
+`application/json`, CSRF-токен не требуется. Тело — `{"provider":"yandex-game","signature":"<platform assertion>"}`,
+ограничение тела 16 KiB, поля `signature` — 8 KiB.
 
-1. Разобрать `signature` как `<base64 hmac>.<base64 JSON>` (split по первой точке).
-2. Посчитать `HMAC-SHA256` от **строки JSON до парсинга** секретом приложения Yandex Games
-   и сравнить с первой частью в base64. Сравнивать константным по времени сравнением.
-3. Проверить `issuedAt` из payload на свежесть. Это единственная доступная защита от replay:
-   nonce привязать нельзя, а сама подпись не истекает.
-4. Сопоставить профиль из payload со своей OIDC-идентичностью и вернуть JSON `Session`
-   с полем `sessionId` (клиент читает его в `loginInternal` и кладёт в storage).
+Серверная сторона реализована в бэкенде `line`:
 
-Ответ, не проходящий `isSession()` (нет поля `id`), трактуется клиентом как ipban.
+1. `provider` проходит allowlist `oidc.signature.providers`.
+2. До обмена с IdP действует rate limit по IP, после успешного resolve — по `userId`.
+3. Assertion обменивается по RFC 8693 на `token_endpoint`; полученный ID token валидируется по JWKS.
+   Assertion и ID token не логируются и не сохраняются в БД.
+4. `sub` из ID token становится `UserId`; используется общий `UserProvisioning` и те же проверки
+   `enabled`/`foreverClosed`/`identity_status`, что и при остальных входах.
+5. При успехе возвращается мобильный `Session` с `sessionId` и cookie; в документе `security`
+   сохраняется provider (например `yandex-game`).
+
+`sessionId` из ответа клиент читает в `loginInternal` и кладёт в storage. Ответ, не проходящий
+`isSession()` (нет поля `id`), трактуется клиентом как ipban.
 
 ### Известные шероховатости (учитывать при правках)
 

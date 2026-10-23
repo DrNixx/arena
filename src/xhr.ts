@@ -178,7 +178,7 @@ export function timeline(user?: Session): Promise<TimelineData> {
 }
 
 export function status(): Promise<void> {
-  const v = 'yandex-game'
+  const v = globalConfig.providerName
   return fetchJSON<ApiStatus>('/api/status', {
     query: {
       v

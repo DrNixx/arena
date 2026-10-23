@@ -50,6 +50,7 @@ interface LichessOptions {
   apiEndPoint: string
   socketEndPoint: string
   mode: string
+  providerName: string;
   buildConfig: BuildConfig
   packageVersion: string
   cpuArch: string

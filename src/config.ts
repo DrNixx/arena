@@ -1,5 +1,6 @@
 export interface Config {
   mode: 'dev' | 'prod'
+  providerName: 'yandex-game' | 'friday-game' | 'vk-game'
   apiEndPoint: string
   socketEndPoint: string
   apiVersion: number
