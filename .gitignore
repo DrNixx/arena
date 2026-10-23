@@ -21,6 +21,7 @@ npm-debug.log
 /www/i18n/date
 
 /node_modules
+/yasdk
 
 .DS_Store
 .tags
